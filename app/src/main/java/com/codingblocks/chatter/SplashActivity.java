@@ -8,13 +8,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Toast;
 
 
 public class SplashActivity extends AppCompatActivity{
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +30,7 @@ public class SplashActivity extends AppCompatActivity{
                 intent = new Intent(this, AuthenticationActivity.class);
             } else {
                 intent = new Intent(this, NoNetworkActivity.class);
+                intent.putExtra("calledFrom", "SplashActivity");
             }
         } else {
             intent = new Intent(this, DashboardActivity.class);

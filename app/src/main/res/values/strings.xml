@@ -4,4 +4,17 @@
     <string name="logo">logo</string>
     <string name="loading">Loading…</string>
     <string name="retry">Retry</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_search">Search</string>
+    <string name="title_activity_dashboard">Dashboard</string>
+    <string name="rooms">Rooms</string>
+    <string name="settings">Settings</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="placeholdertext">PlaceholderText</string>
+    <string name="_0">0</string>
 </resources>

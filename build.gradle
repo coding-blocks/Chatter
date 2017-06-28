@@ -11,6 +11,8 @@ buildscript {
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+        // I know that but sorry, Realm db docs want you to do so
+        classpath "io.realm:realm-gradle-plugin:3.4.0"
     }
 }
 

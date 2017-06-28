@@ -29,18 +29,25 @@ public class NoNetworkActivity extends AppCompatActivity {
 
         setContentView(R.layout.no_network_activity);
 
+        final String calledFrom = getIntent().getStringExtra("calledFrom");
+
         retryButton.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // If network is available redirect user to splash activity
                 if(isNetworkAvailable()){
+                    // Default
                     Intent intent = new Intent(NoNetworkActivity.this, SplashActivity.class);
+                    if(calledFrom.equals("DashboardActivity")){
+                        intent = new Intent(NoNetworkActivity.this, DashboardActivity.class);
+                    }
                     NoNetworkActivity.this.startActivity(intent);
                     NoNetworkActivity.this.finish();
                 }
             }
         });
     }
+
     public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
