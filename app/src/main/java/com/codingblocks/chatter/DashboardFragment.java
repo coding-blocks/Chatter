@@ -10,6 +10,10 @@ import butterknife.ButterKnife;
 
 public class DashboardFragment extends Fragment {
 
+    public DashboardFragment() {
+        // Required empty public constructor
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
