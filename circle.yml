@@ -3,6 +3,9 @@
 #
 
 general:
+    branches:
+        only:
+            - patch 
     artifacts:
         - /home/ubuntu/YourApplicationName/app/build/outputs/apk/
 
