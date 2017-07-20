@@ -29,6 +29,5 @@ test:
     - ./gradlew clean assembleDebug
     - circle-android wait-for-boot:
         timeout: 720
-    - ./gradlew connectedCheck
     - cp -r */build/outputs $CIRCLE_ARTIFACTS
     - cp -r */build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
