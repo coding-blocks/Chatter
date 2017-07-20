@@ -2,11 +2,6 @@
 # Build configuration for Circle CI
 #
 
-general:
-    branches:
-        only:
-            - patch
-
 machine:
     timezone: Asia/Kolkata
     java:
