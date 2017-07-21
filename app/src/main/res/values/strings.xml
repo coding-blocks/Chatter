@@ -12,9 +12,9 @@
     <string name="title_activity_dashboard">Dashboard</string>
     <string name="rooms">Rooms</string>
     <string name="settings">Settings</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="placeholdertext">PlaceholderText</string>
+    <string name="sent_button">sent icon</string>
+    <string name="type_in_placeholder">Type in here to sent</string>
     <string name="_0">0</string>
 </resources>

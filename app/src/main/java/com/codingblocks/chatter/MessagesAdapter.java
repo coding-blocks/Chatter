@@ -46,10 +46,12 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             myViewHolder.username.setText(message.getDisplayName());
             // A timestamp looks like this 2014-03-25T11:51:32.289Z
             String timestamp = message.getTimestamp();
-            timestamp = timestamp.substring(0, timestamp.charAt('T'))+" "+
-                    timestamp.substring(timestamp.charAt('T')+1, timestamp.charAt('T')+5);
-            //= 11:51 2014-03-25
-            myViewHolder.time.setText(timestamp);
+            if(!timestamp.equals("sending")){
+                timestamp = timestamp.substring(0, timestamp.charAt('T'))+" "+
+                        timestamp.substring(timestamp.charAt('T')+1, timestamp.charAt('T')+5);
+                //= 11:51 2014-03-25
+            }
+            myViewHolder.time.setText(timestamp); // or sending
             myViewHolder.message.setText(message.getText());
         }
 

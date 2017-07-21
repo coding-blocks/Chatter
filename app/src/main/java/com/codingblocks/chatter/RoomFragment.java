@@ -13,6 +13,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -29,12 +31,13 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class RoomFragment extends Fragment {
-
 
     public RoomFragment() {
         // Required empty public constructor
@@ -43,6 +46,8 @@ public class RoomFragment extends Fragment {
     private OkHttpClient client = new OkHttpClient();
 
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
+    @BindView(R.id.inputMessage) EditText inputMessage;
+    @BindView(R.id.sendButton) Button sendButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,8 +56,8 @@ public class RoomFragment extends Fragment {
         ButterKnife.bind(view);
         Bundle bundle = this.getArguments();
 
-        final String roomId = bundle.getString("RoomId", "");
-        if(roomId.equals("")) {
+        final String roomId = bundle.getString("RoomId", " ");
+        if(roomId.equals(" ")) {
             Toast.makeText(
                     this.getContext(),
                     "Error no room id has been passed",
@@ -63,11 +68,15 @@ public class RoomFragment extends Fragment {
         Realm.init(getActivity().getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
 
-        final RealmResults<MessagesTable> messages = realm
-                .where(MessagesTable.class)
+        final RealmResults<MessagesTable> messages =
+                realm.where(MessagesTable.class)
                 .greaterThan("id", 0)
                 .findAllSorted("id", Sort.DESCENDING);
 
+        final RealmResults<RoomsTable> currentRoom =
+                realm.where(RoomsTable.class)
+                .equalTo("roomId", roomId)
+                .findAll();
         /* Add on change listener for messages so that we can get live results  */
         messages.addChangeListener(new RealmChangeListener<RealmResults<MessagesTable>>() {
             @Override
@@ -82,6 +91,40 @@ public class RoomFragment extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         displayMessages(messages, roomId);
 
+        if(!currentRoom.get(0).getDraftMessage().equals("")){
+            inputMessage.setText(currentRoom.get(0).getDraftMessage());
+        }
+
+        /* Resetting the placeholder text and setting it back if its empty */
+        inputMessage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(inputMessage.getText().toString().equals("Type in here to sent")){
+                    inputMessage.setText(R.string.type_in_placeholder);
+                }
+            }
+        });
+        inputMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(inputMessage.getText().toString().trim().equals("")){
+                    inputMessage.setText(R.string.type_in_placeholder);
+                } else {
+                    currentRoom.get(0).setDraftMessage(inputMessage.getText().toString());
+                }
+            }
+        });
+
+        /* Sent message button */
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!inputMessage.getText().toString().equals("Type in here to sent") &&
+                        !inputMessage.getText().toString().trim().equals("")){
+                    sendMessage(currentRoom);
+                }
+            }
+        });
         return view;
     }
 
@@ -106,7 +149,7 @@ public class RoomFragment extends Fragment {
         getMessages(0, roomId);
     }
 
-    public void getMessages(int severity, String roomId){
+    public void getMessages(int severity, final String roomId){
         if(isNetworkAvailable()) {
         /* Display a toast to inform the user that we are syncing */
             Toast.makeText(
@@ -187,9 +230,10 @@ public class RoomFragment extends Fragment {
                                     message.setText(text);
                                     message.setTimestamp(timestamp);
                                     message.setUnread(unread);
+                                    message.setSentStatus(true);
                                     message.setDisplayName(displayName);
+                                    message.setRoomId(roomId);
                                     message.setUsername(username);
-
                                     // Begin, copy and commit
                                     realm.beginTransaction();
                                     realm.copyToRealm(message);
@@ -215,5 +259,115 @@ public class RoomFragment extends Fragment {
             getActivity().startActivity(intent);
             getActivity().finish();
         }
+    }
+
+    public void sendMessage(RealmResults<RoomsTable> currentRoom){
+
+        String messageText = inputMessage.getText().toString();
+        // Initialize Realm
+        Realm.init(getActivity().getApplicationContext());
+        // Get a Realm instance for this thread
+        Realm realm = Realm.getDefaultInstance();
+        // Get the current max id in the Messages table
+        Number maxId = realm.where(MessagesTable.class).max("id");
+        // If id is null, set it to 1, else set increment it by 1
+        final int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+        MessagesTable message = new MessagesTable();
+        message.setId(nextId);
+        message.setUId("NotSent"); // This will get updated when we sync
+        message.setRoomId(currentRoom.get(0).getuId());
+        message.setText(messageText);
+        // This is a  sample timestamp, it will get updated
+        message.setTimestamp("sending");
+        message.setSentStatus(false);
+        message.setUnread(false);
+        String displayName = getActivity()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("displayName", "");
+        message.setDisplayName(displayName);
+        String username = getActivity()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("username", "");
+        message.setUsername(username);
+
+        // Begin, copy and commit
+        realm.beginTransaction();
+        realm.copyToRealm(message);
+        realm.commitTransaction();
+
+        if(!isNetworkAvailable()){
+            Toast.makeText(getContext(), "Message will be send when you become online", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "Sending message", Toast.LENGTH_SHORT).show();
+
+            String accessToken = getActivity()
+                    .getSharedPreferences("UserPreferences", 0)
+                    .getString("accessToken", "");
+            RequestBody requestBody = new FormBody.Builder()
+                    .add("text", messageText)
+                    .build();
+            Request request = new Request.Builder()
+                    .url("https://api.gitter.im/v1/rooms/:"
+                            + currentRoom.get(0).getuId()
+                            + "/chatMessages")
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Authorization:", "Bearer " + accessToken)
+                    .post(requestBody)
+                    .build();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    e.printStackTrace();
+                    call.cancel();
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    try {
+                        String responseText = response.body().string();
+                        JSONObject dynamicJObject = new JSONObject(responseText);
+                        final String uId = dynamicJObject.getString("id");
+                        final String text = dynamicJObject.getString("text");
+                        final String timestamp = dynamicJObject.getString("sent");
+                        final boolean unread = dynamicJObject.getBoolean("unread");
+                        JSONObject userObject = dynamicJObject.getJSONObject("fromUser");
+                        final String displayName = userObject.getString("displayName");
+                        final String username = userObject.getString("username");
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Initialize Realm
+                                Realm.init(getActivity().getApplicationContext());
+                                // Get a Realm instance for this thread
+                                Realm realm = Realm.getDefaultInstance();
+
+                                RealmResults<MessagesTable> sentMessage =
+                                        realm.where(MessagesTable.class)
+                                        .equalTo("id", nextId)
+                                        .findAll();
+                                sentMessage.get(0).setUId(uId);
+                                sentMessage.get(0).setText(text);
+                                sentMessage.get(0).setTimestamp(timestamp);
+                                sentMessage.get(0).setUnread(unread);
+                                sentMessage.get(0).setDisplayName(displayName);
+                                sentMessage.get(0).setUsername(username);
+                                sentMessage.get(0).setSentStatus(true);
+
+                                // Begin, copy and commit
+                                realm.beginTransaction();
+                                realm.copyToRealm(sentMessage);
+                                realm.commitTransaction();
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+
+        inputMessage.setText(R.string.type_in_placeholder);
     }
 }
