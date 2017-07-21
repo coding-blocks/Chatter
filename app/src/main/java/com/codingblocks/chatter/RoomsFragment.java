@@ -25,14 +25,18 @@ import butterknife.ButterKnife;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-
 public class RoomsFragment extends Fragment {
+
+    public RoomsFragment() {
+        // Required empty public constructor
+    }
 
     private OkHttpClient client = new OkHttpClient();
 
@@ -65,8 +69,8 @@ public class RoomsFragment extends Fragment {
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getActivity().getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
-
         displayRooms(rooms);
+
         return view;
     }
 
@@ -81,7 +85,7 @@ public class RoomsFragment extends Fragment {
     public void displayRooms(RealmResults<RoomsTable> rooms){
         /* No rooms, let's get them first */
         if(rooms.size() == 0){
-            /* Internet is needed for sure tp get the rooms */
+            /* Internet is needed for sure to get the rooms */
             getRooms(1);
         }
 
@@ -96,7 +100,7 @@ public class RoomsFragment extends Fragment {
 
     public void getRooms(int severity){
         if(isNetworkAvailable()) {
-                /* Display a toast to inform the user that we are syncing */
+            /* Display a toast to inform the user that we are syncing */
             Toast.makeText(
                     getActivity(), "Syncing data", Toast.LENGTH_SHORT
             ).show();
@@ -129,15 +133,16 @@ public class RoomsFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            // Initialize Realm
-                            Realm.init(getActivity().getApplicationContext());
-                            // Get a Realm instance for this thread
-                            Realm realm = Realm.getDefaultInstance();
                             try {
                                 JSONObject JObject = new JSONObject(responseText);
                                 JSONArray JArray = JObject.getJSONArray("rooms");
                                 int i;
                                 for(i = 0; i < JArray.length(); i++){
+                                    // Initialize Realm
+                                    Realm.init(getActivity().getApplicationContext());
+                                    // Get a Realm instance for this thread
+                                    Realm realm = Realm.getDefaultInstance();
+
                                     JSONObject dynamicJObject = JArray.getJSONObject(i);
                                     String githubType = dynamicJObject.getString("githubType");
                                     String uId = dynamicJObject.getString("id");
@@ -150,7 +155,27 @@ public class RoomsFragment extends Fragment {
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
 
+                                    RealmResults<RoomsTable> containedRoom =
+                                            realm.where(RoomsTable.class)
+                                                    .equalTo("uId", uId)
+                                                    .findAllSorted("id", Sort.DESCENDING);
+
+                                    // Get the current max id in the EntityName table
+                                    Number maxId = realm.where(MessagesTable.class).max("id");
+                                    // If id is null, set it to 1, else set increment it by 1
+                                    int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+
+                                    if(containedRoom.size() == 1){
+                                        // Save the id so that if when we delete, we can insert it into the empty slot
+                                        // since we are sorting by id
+                                        nextId = containedRoom.get(0).getId();
+                                        // Delete that room, so you can push an update ;)
+                                        realm.beginTransaction();
+                                        containedRoom.deleteFirstFromRealm();
+                                        realm.commitTransaction();
+                                    }
                                     RoomsTable room = new RoomsTable();
+                                    room.setId(nextId);
                                     room.setuId(uId);
                                     room.setRoomName(name);
                                     room.setUserCount(userCount);
