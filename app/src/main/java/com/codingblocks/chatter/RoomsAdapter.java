@@ -39,7 +39,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
     }
 
     @Override
-    public void onBindViewHolder(RoomsAdapter.MyViewHolder myViewHolder, int i) {
+    public void onBindViewHolder(final RoomsAdapter.MyViewHolder myViewHolder, int i) {
         RoomsTable room = rooms.get(i);
         myViewHolder.roomName.setText(room.getRoomName());
         if(room.getMentions() > 0){
@@ -53,6 +53,14 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
         } else {
             myViewHolder.roomUnread.setText(room.getUnreadItems());
         }
+        final String roomId = room.getuId();
+        myViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((DashboardActivity) myViewHolder.itemView.getContext())
+                        .openRoom(roomId);
+            }
+        });
     }
 
     @Override

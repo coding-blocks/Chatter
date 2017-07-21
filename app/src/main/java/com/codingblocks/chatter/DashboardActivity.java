@@ -150,4 +150,15 @@ public class DashboardActivity extends AppCompatActivity {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
+
+    public void openRoom(String id){
+        Bundle bundle = new Bundle();
+        bundle.putString("RoomId", id);
+        RoomFragment roomFragment = new RoomFragment();
+        roomFragment.setArguments(bundle);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_holder, roomFragment)
+                .commit();
+    }
 }

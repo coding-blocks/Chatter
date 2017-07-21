@@ -36,4 +36,5 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.8.1'
     // Butterknife
     implementation 'com.jakewharton:butterknife:8.6.0'
+    implementation 'com.android.support:support-v4:25.4.0'
 }

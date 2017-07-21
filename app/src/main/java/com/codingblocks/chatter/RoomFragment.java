@@ -1,5 +1,6 @@
 package com.codingblocks.chatter;
 
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -32,9 +33,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class RoomsFragment extends Fragment {
+public class RoomFragment extends Fragment {
 
-    public RoomsFragment() {
+
+    public RoomFragment() {
         // Required empty public constructor
     }
 
@@ -45,31 +47,40 @@ public class RoomsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_rooms, container, false);
+        View view = inflater.inflate(R.layout.fragment_room, container, false);
         ButterKnife.bind(view);
+        Bundle bundle = this.getArguments();
+
+        final String roomId = bundle.getString("RoomId", "");
+        if(roomId.equals("")) {
+            Toast.makeText(
+                    this.getContext(),
+                    "Error no room id has been passed",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
 
         Realm.init(getActivity().getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
 
-        final RealmResults<RoomsTable> rooms = realm
-                .where(RoomsTable.class)
+        final RealmResults<MessagesTable> messages = realm
+                .where(MessagesTable.class)
                 .greaterThan("id", 0)
-                .findAll();
+                .findAllSorted("id", Sort.DESCENDING);
 
-        /* Add on change listener for rooms so that we can get live results  */
-        rooms.addChangeListener(new RealmChangeListener<RealmResults<RoomsTable>>() {
+        /* Add on change listener for messages so that we can get live results  */
+        messages.addChangeListener(new RealmChangeListener<RealmResults<MessagesTable>>() {
             @Override
-            public void onChange(RealmResults<RoomsTable> rooms) {
+            public void onChange(RealmResults<MessagesTable> rooms) {
                 // Update the Recycler View
-                displayRooms(rooms);
+                displayMessages(messages, roomId);
             }
         });
 
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getActivity().getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
-        displayRooms(rooms);
+        displayMessages(messages, roomId);
 
         return view;
     }
@@ -82,25 +93,22 @@ public class RoomsFragment extends Fragment {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void displayRooms(RealmResults<RoomsTable> rooms){
-        /* No rooms, let's get them first */
-        if(rooms.size() == 0){
-            /* Internet is needed for sure to get the rooms */
-            getRooms(1);
+    public void displayMessages(RealmResults<MessagesTable> messages, String roomId){
+        /* No messages, let's get them first */
+        if(messages.size() == 0){
+            getMessages(1, roomId);
         }
-
         RecyclerView.Adapter adapter =
-                new RoomsAdapter(rooms, getActivity().getApplicationContext());
+                new MessagesAdapter(messages, getActivity().getApplicationContext());
         recyclerView.setAdapter(adapter);
-
-        /* Get rooms if network is available
+        /* Get messages if network is available
            [we have old ones but checking for updates] */
-        getRooms(0);
+        getMessages(0, roomId);
     }
 
-    public void getRooms(int severity){
+    public void getMessages(int severity, String roomId){
         if(isNetworkAvailable()) {
-            /* Display a toast to inform the user that we are syncing */
+        /* Display a toast to inform the user that we are syncing */
             Toast.makeText(
                     getActivity(), "Syncing data", Toast.LENGTH_SHORT
             ).show();
@@ -113,10 +121,11 @@ public class RoomsFragment extends Fragment {
                 getActivity().finish();
             }
             Request request = new Request.Builder()
-                    .url("https://gitter.im/v1/rooms")
+                    .url("https://gitter.im/v1/rooms/:" + roomId + "/chatMessages")
                     .addHeader("Accept", "application/json")
                     .addHeader("Authorization:", "Bearer " + accessToken)
                     .build();
+
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -126,68 +135,67 @@ public class RoomsFragment extends Fragment {
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response)
                         throws IOException {
-                    /* Simple hack for compatibility as API 19 is required for
+                /* Simple hack for compatibility as API 19 is required for
                        new JSONArray */
-                    final String responseText = "{\"rooms\":"+response.toString()+"}";
-                    // We will move to UI Thread
+                    final String responseText = "{\"messages\":" + response.toString() + "}";
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             try {
                                 JSONObject JObject = new JSONObject(responseText);
-                                JSONArray JArray = JObject.getJSONArray("rooms");
+                                JSONArray JArray = JObject.getJSONArray("messages");
                                 int i;
-                                for(i = 0; i < JArray.length(); i++){
+                                for (i = 0; i < JArray.length(); i++) {
                                     // Initialize Realm
                                     Realm.init(getActivity().getApplicationContext());
                                     // Get a Realm instance for this thread
                                     Realm realm = Realm.getDefaultInstance();
 
                                     JSONObject dynamicJObject = JArray.getJSONObject(i);
-                                    String githubType = dynamicJObject.getString("githubType");
                                     String uId = dynamicJObject.getString("id");
-                                    String name = dynamicJObject.getString("name");
-                                    // userCount = 0 == user to user room since ONETWOONE doesnot have it
-                                    int userCount = 0;
-                                    if(!githubType.equals("ONETWOONE")) {
-                                        userCount = dynamicJObject.getInt("userCount");
-                                    }
-                                    int unreadItems = dynamicJObject.getInt("unreadItems");
-                                    int mentions = dynamicJObject.getInt("mentions");
+                                    String text = dynamicJObject.getString("text");
+                                    String timestamp = dynamicJObject.getString("sent");
+                                    boolean unread = dynamicJObject.getBoolean("unread");
+                                    JSONObject userObject = dynamicJObject.getJSONObject("fromUser");
+                                    String displayName = userObject.getString("displayName");
+                                    String username = userObject.getString("username");
 
-                                    RealmResults<RoomsTable> containedRoom =
-                                            realm.where(RoomsTable.class)
+                                    // If message exists already
+                                    final RealmResults<MessagesTable> containedMessage =
+                                            realm.where(MessagesTable.class)
                                                     .equalTo("uId", uId)
-                                                    .findAllSorted("id", Sort.DESCENDING);
+                                            .findAllSorted("id", Sort.DESCENDING);
 
                                     // Get the current max id in the EntityName table
                                     Number maxId = realm.where(MessagesTable.class).max("id");
                                     // If id is null, set it to 1, else set increment it by 1
                                     int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
 
-                                    if(containedRoom.size() == 1){
+                                    if(containedMessage.size() == 1) {
                                         // Save the id so that if when we delete, we can insert it into the empty slot
                                         // since we are sorting by id
-                                        nextId = containedRoom.get(0).getId();
-                                        // Delete that room, so you can push an update ;)
+                                        nextId = containedMessage.get(0).getId();
+                                        // Delete that message, so you can push an update ;)
                                         realm.beginTransaction();
-                                        containedRoom.deleteFirstFromRealm();
+                                        containedMessage.deleteFirstFromRealm();
                                         realm.commitTransaction();
                                     }
-                                    RoomsTable room = new RoomsTable();
-                                    room.setId(nextId);
-                                    room.setuId(uId);
-                                    room.setRoomName(name);
-                                    room.setUserCount(userCount);
-                                    room.setUnreadItems(unreadItems);
-                                    room.setMentions(mentions);
+
+                                    MessagesTable message = new MessagesTable();
+                                    message.setId(nextId);
+                                    message.setUId(uId);
+                                    message.setText(text);
+                                    message.setTimestamp(timestamp);
+                                    message.setUnread(unread);
+                                    message.setDisplayName(displayName);
+                                    message.setUsername(username);
 
                                     // Begin, copy and commit
                                     realm.beginTransaction();
-                                    realm.copyToRealm(room);
+                                    realm.copyToRealm(message);
                                     realm.commitTransaction();
                                 }
-                                if(i == 0){
+                                if (i == 0) {
                                     Toast.makeText(
                                             getActivity(),
                                             "There seems to be no rooms, please try again later",
@@ -201,7 +209,6 @@ public class RoomsFragment extends Fragment {
                     });
                 }
             });
-        /* Prompt user to turn on internet only if we have no rooms */
         } else if(severity == 1){
             Intent intent = new Intent(getActivity(), NoNetworkActivity.class);
             intent.putExtra("calledFrom", "DashboardActivity");
