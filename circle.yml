@@ -21,13 +21,7 @@ dependencies:
         - /usr/local/android-sdk-linux/tools
         - /usr/local/android-sdk-linux/build-tools/25.0.3
 test:
-  pre:
-    - emulator -avd circleci-android22 -no-window:
-        background: true
-        parallel: true
   override:
     - ./gradlew clean assembleDebug
-    - circle-android wait-for-boot:
-        timeout: 720
-    - cp -r */build/outputs $CIRCLE_ARTIFACTS
-    - cp -r */build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
+  post:
+    - cp -r app/build/outputs $CIRCLE_ARTIFACTS
