@@ -24,4 +24,4 @@ test:
   override:
     - ./gradlew clean assembleDebug
   post:
-    - cp -r app/build/outputs $CIRCLE_ARTIFACTS
+    - cp -r */build/outputs $CIRCLE_ARTIFACTS
