@@ -1,5 +1,6 @@
 package com.codingblocks.chatter;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -124,6 +125,11 @@ public class DashboardActivity extends AppCompatActivity {
                 return true;
             }
         });
+        NotificationManager nManager = (NotificationManager)
+                this.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nManager != null) {
+            nManager.cancel(1234567890);
+        }
     }
 
     public void selectFragment(int id){
