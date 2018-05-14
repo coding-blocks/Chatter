@@ -36,7 +36,6 @@ public class AuthenticationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ButterKnife.bind(this);
 
         // Exclude the title bar for this activity
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -46,6 +45,7 @@ public class AuthenticationActivity extends AppCompatActivity {
         );
 
         setContentView(R.layout.activity_authentication);
+        ButterKnife.bind(this);
 
         // Begin authentication
         authenticationWebView.getSettings().setSupportZoom(true);
