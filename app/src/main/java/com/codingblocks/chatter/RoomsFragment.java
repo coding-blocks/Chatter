@@ -1,5 +1,6 @@
 package com.codingblocks.chatter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -37,7 +38,7 @@ public class RoomsFragment extends Fragment {
     public RoomsFragment() {
         // Required empty public constructor
     }
-
+    private Activity mActivity;
     private OkHttpClient client = new OkHttpClient();
 
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
@@ -47,7 +48,7 @@ public class RoomsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
-        ButterKnife.bind(view);
+        ButterKnife.bind(this, view);
 
         Realm.init(getActivity().getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
@@ -66,8 +67,7 @@ public class RoomsFragment extends Fragment {
             }
         });
 
-        RecyclerView.LayoutManager layoutManager =
-                new LinearLayoutManager(getActivity().getApplicationContext());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         displayRooms(rooms);
 
@@ -130,7 +130,7 @@ public class RoomsFragment extends Fragment {
                        new JSONArray */
                     final String responseText = "{\"rooms\":"+response.toString()+"}";
                     // We will move to UI Thread
-                    getActivity().runOnUiThread(new Runnable() {
+                    mActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -208,5 +208,11 @@ public class RoomsFragment extends Fragment {
             getActivity().startActivity(intent);
             getActivity().finish();
         }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (Activity) getContext();
     }
 }
