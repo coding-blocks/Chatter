@@ -1,0 +1,10 @@
+Fixes #[Add issue number here. Note: This will automatically close the issue. _If you do not solve the issue entirely, please change the message e.g. "First steps for issues #IssueNumber_]
+
+**Changes:**
+[Add here what changes were made in this issue and if possible provide links.]
+
+**Screenshots for the change:**
+[Add screenshot here if any, 
+-upload the screenshot (drap and drop)
+-use `<img src="[urlFromPrevUpload]" height="480px" width="270px">` to resize the screenshot
+-delete prev upload text] 
