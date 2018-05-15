@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.codingblocks.chatter">
 
@@ -37,7 +36,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
 
         <service
-            android:name=".AuthenticatorService">
+            android:name=".Services.AuthenticatorService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator"/>
             </intent-filter>
@@ -46,12 +45,12 @@
                 android:resource="@xml/authenticator" />
         </service>
         <provider
-            android:name=".StubProvider"
+            android:name=".providers.StubProvider"
             android:authorities=".provider"
             android:exported="false"
             android:syncable="true"/>
         <service
-            android:name=".SyncService"
+            android:name=".Services.SyncService"
             android:exported="true"
             android:process=":sync">
             <intent-filter>
@@ -61,7 +60,7 @@
                 android:resource="@xml/syncadapter" />
         </service>
         <receiver
-            android:name=".NetworkBroadcaster">
+            android:name=".Recievers.NetworkBroadcaster">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>

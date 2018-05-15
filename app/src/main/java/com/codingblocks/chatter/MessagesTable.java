@@ -35,4 +35,19 @@ public class MessagesTable extends RealmObject {
     public void setDisplayName(String displayName){this.displayName = displayName;}
     public void setUnread(boolean unread){this.unread = unread;}
     public void setSentStatus(boolean sentStatus){this.sentStatus = sentStatus;}
+
+    @Override
+    public String toString() {
+        return "MessagesTable{" +
+                "id=" + id +
+                ", uId='" + uId + '\'' +
+                ", text='" + text + '\'' +
+                ", timestamp='" + timestamp + '\'' +
+                ", roomId='" + roomId + '\'' +
+                ", username='" + username + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", unread=" + unread +
+                ", sentStatus=" + sentStatus +
+                '}';
+    }
 }
