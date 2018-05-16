@@ -53,7 +53,7 @@ public class RoomFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
-        ButterKnife.bind(view);
+        ButterKnife.bind(this,view);
         Bundle bundle = this.getArguments();
 
         final String roomId = bundle.getString("RoomId", " ");
@@ -71,7 +71,7 @@ public class RoomFragment extends Fragment {
         final RealmResults<MessagesTable> messages =
                 realm.where(MessagesTable.class)
                 .greaterThan("id", 0)
-                .findAllSorted("id", Sort.DESCENDING);
+                .findAll().sort("id",Sort.DESCENDING);//Sorted("id", Sort.DESCENDING);
 
         final RealmResults<RoomsTable> currentRoom =
                 realm.where(RoomsTable.class)
@@ -207,7 +207,7 @@ public class RoomFragment extends Fragment {
                                     final RealmResults<MessagesTable> containedMessage =
                                             realm.where(MessagesTable.class)
                                                     .equalTo("uId", uId)
-                                            .findAllSorted("id", Sort.DESCENDING);
+                                            .findAll().sort("id", Sort.DESCENDING);
 
                                     // Get the current max id in the EntityName table
                                     Number maxId = realm.where(MessagesTable.class).max("id");

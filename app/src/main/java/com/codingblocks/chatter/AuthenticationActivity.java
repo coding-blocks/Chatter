@@ -36,7 +36,6 @@ public class AuthenticationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ButterKnife.bind(this);
 
         // Exclude the title bar for this activity
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -47,11 +46,16 @@ public class AuthenticationActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_authentication);
 
+        ButterKnife.bind(this);
+
+
+
         // Begin authentication
         authenticationWebView.getSettings().setSupportZoom(true);
         authenticationWebView.getSettings().setDomStorageEnabled(true);
         authenticationWebView.getSettings().setJavaScriptEnabled(true);
         authenticationWebView.setWebViewClient(new WebViewClient() {
+
             // shouldOverrideUrlLoading makes this `WebView` the default handler for URLs
             // inside the app, so that links are not kicked out to other apps.
             @Override
@@ -123,5 +127,14 @@ public class AuthenticationActivity extends AppCompatActivity {
                 "https://gitter.im/login/oauth/authorize?client_id="+OauthKeys.clientID+
                 "&response_type=code&redirect_uri="+OauthKeys.redirectUri
         );
+
+
+
+
+
     }
+
+
+
+
 }

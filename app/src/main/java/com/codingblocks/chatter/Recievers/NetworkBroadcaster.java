@@ -1,4 +1,4 @@
-package com.codingblocks.chatter;
+package com.codingblocks.chatter.Recievers;
 
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;

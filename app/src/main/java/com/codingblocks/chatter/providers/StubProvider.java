@@ -1,4 +1,4 @@
-package com.codingblocks.chatter;
+package com.codingblocks.chatter.providers;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;

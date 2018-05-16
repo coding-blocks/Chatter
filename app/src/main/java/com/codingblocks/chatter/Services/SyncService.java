@@ -1,8 +1,10 @@
-package com.codingblocks.chatter;
+package com.codingblocks.chatter.Services;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+
+import com.codingblocks.chatter.SyncAdapter;
 
 public class SyncService extends Service {
     // Storage for an instance of the sync adapter

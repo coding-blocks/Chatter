@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static android.content.ContentValues.TAG;
+
 public class RoomsFragment extends Fragment {
 
     public RoomsFragment() {
@@ -47,17 +50,16 @@ public class RoomsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
-        ButterKnife.bind(view);
-
+        ButterKnife.bind(this,view);
         Realm.init(getActivity().getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
+
 
         final RealmResults<RoomsTable> rooms = realm
                 .where(RoomsTable.class)
                 .greaterThan("id", 0)
                 .findAll();
-
-        /* Add on change listener for rooms so that we can get live results  */
+      /* Add on change listener for rooms so that we can get live results  */
         rooms.addChangeListener(new RealmChangeListener<RealmResults<RoomsTable>>() {
             @Override
             public void onChange(RealmResults<RoomsTable> rooms) {
@@ -99,6 +101,7 @@ public class RoomsFragment extends Fragment {
     }
 
     public void getRooms(int severity){
+
         if(isNetworkAvailable()) {
             /* Display a toast to inform the user that we are syncing */
             Toast.makeText(
@@ -117,6 +120,7 @@ public class RoomsFragment extends Fragment {
                     .addHeader("Accept", "application/json")
                     .addHeader("Authorization:", "Bearer " + accessToken)
                     .build();
+
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -128,13 +132,16 @@ public class RoomsFragment extends Fragment {
                         throws IOException {
                     /* Simple hack for compatibility as API 19 is required for
                        new JSONArray */
+
                     final String responseText = "{\"rooms\":"+response.toString()+"}";
                     // We will move to UI Thread
                     getActivity().runOnUiThread(new Runnable() {
+
                         @Override
                         public void run() {
                             try {
                                 JSONObject JObject = new JSONObject(responseText);
+
                                 JSONArray JArray = JObject.getJSONArray("rooms");
                                 int i;
                                 for(i = 0; i < JArray.length(); i++){
@@ -147,23 +154,28 @@ public class RoomsFragment extends Fragment {
                                     String githubType = dynamicJObject.getString("githubType");
                                     String uId = dynamicJObject.getString("id");
                                     String name = dynamicJObject.getString("name");
+
                                     // userCount = 0 == user to user room since ONETWOONE doesnot have it
                                     int userCount = 0;
                                     if(!githubType.equals("ONETWOONE")) {
                                         userCount = dynamicJObject.getInt("userCount");
+
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
 
+
                                     RealmResults<RoomsTable> containedRoom =
                                             realm.where(RoomsTable.class)
                                                     .equalTo("uId", uId)
-                                                    .findAllSorted("id", Sort.DESCENDING);
-
+                                                    .findAll().sort("id",Sort.DESCENDING);
+//                                                    .findAllSorted("id", Sort.DESCENDING);//deprecated i guess??
                                     // Get the current max id in the EntityName table
                                     Number maxId = realm.where(MessagesTable.class).max("id");
+
                                     // If id is null, set it to 1, else set increment it by 1
                                     int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+
 
                                     if(containedRoom.size() == 1){
                                         // Save the id so that if when we delete, we can insert it into the empty slot

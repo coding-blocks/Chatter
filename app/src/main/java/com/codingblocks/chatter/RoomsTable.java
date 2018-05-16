@@ -13,6 +13,9 @@ public class RoomsTable extends RealmObject {
     private int mentions;
     private String draftMessage;
 
+    public RoomsTable() {
+    }
+
     public int getId(){return id;}
     public int getUserCount(){return userCount;}
     public int getUnreadItems(){return unreadItems;}
@@ -28,4 +31,17 @@ public class RoomsTable extends RealmObject {
     public void setUnreadItems(int unreadItems){this.unreadItems = unreadItems;}
     public void setMentions(int mentions){this.mentions = mentions;}
     public void setDraftMessage(String draftMessage){this.draftMessage = draftMessage;}
+
+    @Override
+    public String toString() {
+        return "RoomsTable{" +
+                "id=" + id +
+                ", uId='" + uId + '\'' +
+                ", roomName='" + roomName + '\'' +
+                ", userCount=" + userCount +
+                ", unreadItems=" + unreadItems +
+                ", mentions=" + mentions +
+                ", draftMessage='" + draftMessage + '\'' +
+                '}';
+    }
 }

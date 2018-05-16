@@ -22,9 +22,7 @@ public class SplashActivity extends AppCompatActivity{
         String accessToken = sharedPreferences.getString("accessToken", "");
 
         Intent intent;
-        // Check if the token exists and redirect the user to authentication activity if
-        // he there is internet connection (else he would be send to NoNetworkActivity)
-        // or redirect him to the dashboard activity accordingly.
+
         if (accessToken.equals("")) {
             if(isNetworkAvailable()){
                 intent = new Intent(this, AuthenticationActivity.class);
@@ -44,5 +42,6 @@ public class SplashActivity extends AppCompatActivity{
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+
     }
 }

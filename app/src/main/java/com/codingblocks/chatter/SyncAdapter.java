@@ -154,7 +154,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                         realm.where(MessagesTable.class)
                                 .equalTo("roomId", rooms.get(i).getuId())
                                 .equalTo("unread", true)
-                                .findAllSorted("id")
+                                .findAll().sort("id")//Sorted("id") deprecated i guess?
                                 .first();
                 final RoomsTable room = rooms.get(i);
                 Request request = new Request.Builder()

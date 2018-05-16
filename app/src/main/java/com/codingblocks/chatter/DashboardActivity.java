@@ -44,6 +44,7 @@ public class DashboardActivity extends AppCompatActivity {
         final SharedPreferences sharedPreferences =
                 this.getSharedPreferences("UserPreferences", 0);
 
+
         /* Useful data from Shared Preferences */
         String accessToken = sharedPreferences.getString("accessToken", "");
         String username = sharedPreferences.getString("username", "");
