@@ -51,7 +51,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
                     context.getResources().getColor(R.color.white)
             );
         } else {
-            myViewHolder.roomUnread.setText(room.getUnreadItems());
+            myViewHolder.roomUnread.setText(Integer.toString(room.getUnreadItems()));
         }
         final String roomId = room.getuId();
         myViewHolder.itemView.setOnClickListener(new View.OnClickListener() {

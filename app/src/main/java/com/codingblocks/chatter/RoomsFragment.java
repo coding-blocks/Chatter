@@ -28,11 +28,14 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 public class RoomsFragment extends Fragment {
+
+    private RoomsAdapter adapter;
 
     public RoomsFragment() {
         // Required empty public constructor
@@ -62,7 +65,7 @@ public class RoomsFragment extends Fragment {
             @Override
             public void onChange(RealmResults<RoomsTable> rooms) {
                 // Update the Recycler View
-                displayRooms(rooms);
+                adapter.notifyDataSetChanged();
             }
         });
 
@@ -89,8 +92,7 @@ public class RoomsFragment extends Fragment {
             getRooms(1);
         }
 
-        RecyclerView.Adapter adapter =
-                new RoomsAdapter(rooms, getActivity().getApplicationContext());
+        adapter = new RoomsAdapter(rooms, getActivity().getApplicationContext());
         recyclerView.setAdapter(adapter);
 
         /* Get rooms if network is available
@@ -113,10 +115,12 @@ public class RoomsFragment extends Fragment {
                 getActivity().finish();
             }
             Request request = new Request.Builder()
-                    .url("https://gitter.im/v1/rooms")
-                    .addHeader("Accept", "application/json")
-                    .addHeader("Authorization:", "Bearer " + accessToken)
+                    .url("https://api.gitter.im/v1/rooms")
                     .build();
+            HttpUrl url = request.url().newBuilder()
+                    .addQueryParameter("access_token", accessToken)
+                    .build();
+            request = request.newBuilder().url(url).build();
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -128,7 +132,7 @@ public class RoomsFragment extends Fragment {
                         throws IOException {
                     /* Simple hack for compatibility as API 19 is required for
                        new JSONArray */
-                    final String responseText = "{\"rooms\":"+response.toString()+"}";
+                    final String responseText = "{\"rooms\":"+response.body().string()+"}";
                     // We will move to UI Thread
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
@@ -161,7 +165,7 @@ public class RoomsFragment extends Fragment {
                                                     .findAllSorted("id", Sort.DESCENDING);
 
                                     // Get the current max id in the EntityName table
-                                    Number maxId = realm.where(MessagesTable.class).max("id");
+                                    Number maxId = realm.where(RoomsTable.class).max("id");
                                     // If id is null, set it to 1, else set increment it by 1
                                     int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
 
@@ -194,6 +198,7 @@ public class RoomsFragment extends Fragment {
                                             Toast.LENGTH_SHORT
                                     ).show();
                                 }
+                                adapter.notifyDataSetChanged();
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
