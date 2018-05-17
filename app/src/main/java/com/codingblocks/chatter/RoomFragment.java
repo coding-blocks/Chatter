@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -32,12 +33,15 @@ import io.realm.Sort;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class RoomFragment extends Fragment {
+
+    private MessagesAdapter adapter;
 
     public RoomFragment() {
         // Required empty public constructor
@@ -47,13 +51,13 @@ public class RoomFragment extends Fragment {
 
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
     @BindView(R.id.inputMessage) EditText inputMessage;
-    @BindView(R.id.sendButton) Button sendButton;
+    @BindView(R.id.sendButton) ImageButton sendButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
-        ButterKnife.bind(view);
+        ButterKnife.bind(this, view);
         Bundle bundle = this.getArguments();
 
         final String roomId = bundle.getString("RoomId", " ");
@@ -75,14 +79,14 @@ public class RoomFragment extends Fragment {
 
         final RealmResults<RoomsTable> currentRoom =
                 realm.where(RoomsTable.class)
-                .equalTo("roomId", roomId)
+                .equalTo("uId", roomId)
                 .findAll();
         /* Add on change listener for messages so that we can get live results  */
         messages.addChangeListener(new RealmChangeListener<RealmResults<MessagesTable>>() {
             @Override
             public void onChange(RealmResults<MessagesTable> rooms) {
                 // Update the Recycler View
-                displayMessages(messages, roomId);
+                adapter.notifyDataSetChanged();
             }
         });
 
@@ -91,7 +95,7 @@ public class RoomFragment extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         displayMessages(messages, roomId);
 
-        if(!currentRoom.get(0).getDraftMessage().equals("")){
+        if(currentRoom.get(0).getDraftMessage()!=null){
             inputMessage.setText(currentRoom.get(0).getDraftMessage());
         }
 
@@ -141,7 +145,7 @@ public class RoomFragment extends Fragment {
         if(messages.size() == 0){
             getMessages(1, roomId);
         }
-        RecyclerView.Adapter adapter =
+        adapter =
                 new MessagesAdapter(messages, getActivity().getApplicationContext());
         recyclerView.setAdapter(adapter);
         /* Get messages if network is available
@@ -164,9 +168,8 @@ public class RoomFragment extends Fragment {
                 getActivity().finish();
             }
             Request request = new Request.Builder()
-                    .url("https://gitter.im/v1/rooms/:" + roomId + "/chatMessages")
-                    .addHeader("Accept", "application/json")
-                    .addHeader("Authorization:", "Bearer " + accessToken)
+                    .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?" +
+                            "access_token=" + accessToken)
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
@@ -180,7 +183,7 @@ public class RoomFragment extends Fragment {
                         throws IOException {
                 /* Simple hack for compatibility as API 19 is required for
                        new JSONArray */
-                    final String responseText = "{\"messages\":" + response.toString() + "}";
+                    final String responseText = "{\"messages\":" + response.body().string() + "}";
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -310,6 +313,7 @@ public class RoomFragment extends Fragment {
                     .url("https://api.gitter.im/v1/rooms/:"
                             + currentRoom.get(0).getuId()
                             + "/chatMessages")
+                    .addHeader("Content-Type", "application/json")
                     .addHeader("Accept", "application/json")
                     .addHeader("Authorization:", "Bearer " + accessToken)
                     .post(requestBody)

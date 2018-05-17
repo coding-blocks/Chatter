@@ -2,15 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.codingblocks.chatter.RoomFragment"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    android:gravity="bottom">
+    tools:context="com.codingblocks.chatter.RoomFragment">
 
     <ImageButton
         android:id="@+id/sendButton"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/recycler_view"
@@ -20,6 +20,7 @@
         android:contentDescription="@string/sent_button" />
 
     <EditText
+        android:layout_alignParentBottom="true"
         android:id="@+id/inputMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
