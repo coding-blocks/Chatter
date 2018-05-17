@@ -47,7 +47,7 @@ public class RoomsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
-        ButterKnife.bind(view);
+        ButterKnife.bind(this,view);
 
         Realm.init(getActivity().getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
@@ -130,75 +130,77 @@ public class RoomsFragment extends Fragment {
                        new JSONArray */
                     final String responseText = "{\"rooms\":"+response.toString()+"}";
                     // We will move to UI Thread
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                JSONObject JObject = new JSONObject(responseText);
-                                JSONArray JArray = JObject.getJSONArray("rooms");
-                                int i;
-                                for(i = 0; i < JArray.length(); i++){
-                                    // Initialize Realm
-                                    Realm.init(getActivity().getApplicationContext());
-                                    // Get a Realm instance for this thread
-                                    Realm realm = Realm.getDefaultInstance();
+                    if(getActivity()!=null) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    JSONObject JObject = new JSONObject(responseText);
+                                    JSONArray JArray = JObject.getJSONArray("rooms");
+                                    int i;
+                                    for (i = 0; i < JArray.length(); i++) {
+                                        // Initialize Realm
+                                        Realm.init(getActivity().getApplicationContext());
+                                        // Get a Realm instance for this thread
+                                        Realm realm = Realm.getDefaultInstance();
 
-                                    JSONObject dynamicJObject = JArray.getJSONObject(i);
-                                    String githubType = dynamicJObject.getString("githubType");
-                                    String uId = dynamicJObject.getString("id");
-                                    String name = dynamicJObject.getString("name");
-                                    // userCount = 0 == user to user room since ONETWOONE doesnot have it
-                                    int userCount = 0;
-                                    if(!githubType.equals("ONETWOONE")) {
-                                        userCount = dynamicJObject.getInt("userCount");
-                                    }
-                                    int unreadItems = dynamicJObject.getInt("unreadItems");
-                                    int mentions = dynamicJObject.getInt("mentions");
+                                        JSONObject dynamicJObject = JArray.getJSONObject(i);
+                                        String githubType = dynamicJObject.getString("githubType");
+                                        String uId = dynamicJObject.getString("id");
+                                        String name = dynamicJObject.getString("name");
+                                        // userCount = 0 == user to user room since ONETWOONE doesnot have it
+                                        int userCount = 0;
+                                        if (!githubType.equals("ONETWOONE")) {
+                                            userCount = dynamicJObject.getInt("userCount");
+                                        }
+                                        int unreadItems = dynamicJObject.getInt("unreadItems");
+                                        int mentions = dynamicJObject.getInt("mentions");
 
-                                    RealmResults<RoomsTable> containedRoom =
-                                            realm.where(RoomsTable.class)
-                                                    .equalTo("uId", uId)
-                                                    .findAllSorted("id", Sort.DESCENDING);
+                                        RealmResults<RoomsTable> containedRoom =
+                                                realm.where(RoomsTable.class)
+                                                        .equalTo("uId", uId)
+                                                        .findAllSorted("id", Sort.DESCENDING);
 
-                                    // Get the current max id in the EntityName table
-                                    Number maxId = realm.where(MessagesTable.class).max("id");
-                                    // If id is null, set it to 1, else set increment it by 1
-                                    int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+                                        // Get the current max id in the EntityName table
+                                        Number maxId = realm.where(MessagesTable.class).max("id");
+                                        // If id is null, set it to 1, else set increment it by 1
+                                        int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
 
-                                    if(containedRoom.size() == 1){
-                                        // Save the id so that if when we delete, we can insert it into the empty slot
-                                        // since we are sorting by id
-                                        nextId = containedRoom.get(0).getId();
-                                        // Delete that room, so you can push an update ;)
+                                        if (containedRoom.size() == 1) {
+                                            // Save the id so that if when we delete, we can insert it into the empty slot
+                                            // since we are sorting by id
+                                            nextId = containedRoom.get(0).getId();
+                                            // Delete that room, so you can push an update ;)
+                                            realm.beginTransaction();
+                                            containedRoom.deleteFirstFromRealm();
+                                            realm.commitTransaction();
+                                        }
+                                        RoomsTable room = new RoomsTable();
+                                        room.setId(nextId);
+                                        room.setuId(uId);
+                                        room.setRoomName(name);
+                                        room.setUserCount(userCount);
+                                        room.setUnreadItems(unreadItems);
+                                        room.setMentions(mentions);
+
+                                        // Begin, copy and commit
                                         realm.beginTransaction();
-                                        containedRoom.deleteFirstFromRealm();
+                                        realm.copyToRealm(room);
                                         realm.commitTransaction();
                                     }
-                                    RoomsTable room = new RoomsTable();
-                                    room.setId(nextId);
-                                    room.setuId(uId);
-                                    room.setRoomName(name);
-                                    room.setUserCount(userCount);
-                                    room.setUnreadItems(unreadItems);
-                                    room.setMentions(mentions);
-
-                                    // Begin, copy and commit
-                                    realm.beginTransaction();
-                                    realm.copyToRealm(room);
-                                    realm.commitTransaction();
+                                    if (i == 0) {
+                                        Toast.makeText(
+                                                getActivity(),
+                                                "There seems to be no rooms, please try again later",
+                                                Toast.LENGTH_SHORT
+                                        ).show();
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
                                 }
-                                if(i == 0){
-                                    Toast.makeText(
-                                            getActivity(),
-                                            "There seems to be no rooms, please try again later",
-                                            Toast.LENGTH_SHORT
-                                    ).show();
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             });
         /* Prompt user to turn on internet only if we have no rooms */
