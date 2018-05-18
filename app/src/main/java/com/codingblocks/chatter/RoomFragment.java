@@ -100,7 +100,7 @@ public class RoomFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if(inputMessage.getText().toString().equals("Type in here to sent")){
-                    inputMessage.setText(R.string.type_in_placeholder);
+                    inputMessage.setHint(R.string.type_in_placeholder);
                 }
             }
         });
@@ -108,7 +108,7 @@ public class RoomFragment extends Fragment {
             @Override
             public void onFocusChange(View view, boolean b) {
                 if(inputMessage.getText().toString().trim().equals("")){
-                    inputMessage.setText(R.string.type_in_placeholder);
+                    inputMessage.setHint(R.string.type_in_placeholder);
                 } else {
                     currentRoom.get(0).setDraftMessage(inputMessage.getText().toString());
                 }
@@ -368,6 +368,6 @@ public class RoomFragment extends Fragment {
             });
         }
 
-        inputMessage.setText(R.string.type_in_placeholder);
+        inputMessage.setHint(R.string.type_in_placeholder);
     }
 }
