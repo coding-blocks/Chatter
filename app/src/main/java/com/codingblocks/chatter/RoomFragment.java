@@ -66,7 +66,7 @@ public class RoomFragment extends Fragment {
         }
 
         Realm.init(getActivity().getApplicationContext());
-        Realm realm = Realm.getDefaultInstance();
+        final Realm realm = Realm.getDefaultInstance();
 
         final RealmResults<MessagesTable> messages =
                 realm.where(MessagesTable.class)
@@ -110,7 +110,12 @@ public class RoomFragment extends Fragment {
                 if(inputMessage.getText().toString().trim().equals("")){
                     inputMessage.setText(R.string.type_in_placeholder);
                 } else {
-                    currentRoom.get(0).setDraftMessage(inputMessage.getText().toString());
+                    realm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            currentRoom.get(0).setDraftMessage(inputMessage.getText().toString());
+                        }
+                    });
                 }
             }
         });
@@ -307,7 +312,7 @@ public class RoomFragment extends Fragment {
                     .add("text", messageText)
                     .build();
             Request request = new Request.Builder()
-                    .url("https://api.gitter.im/v1/rooms/:"
+                    .url("https://api.gitter.im/v1/rooms/"
                             + currentRoom.get(0).getuId()
                             + "/chatMessages")
                     .addHeader("Accept", "application/json")
