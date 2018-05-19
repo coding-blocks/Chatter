@@ -275,7 +275,7 @@ public class RoomFragment extends Fragment {
         // Get a Realm instance for this thread
         Realm realm = Realm.getDefaultInstance();
         // Get the current max id in the Messages table
-        final Number maxId = realm.where(MessagesTable.class).max("id");
+        Number maxId = realm.where(MessagesTable.class).max("id");
         // If id is null, set it to 1, else set increment it by 1
         final int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
         MessagesTable message = new MessagesTable();
