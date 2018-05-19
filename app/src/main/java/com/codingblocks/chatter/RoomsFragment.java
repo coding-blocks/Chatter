@@ -50,7 +50,7 @@ public class RoomsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
-        ButterKnife.bind(view);
+        ButterKnife.bind(this,view);
 
         Realm.init(getActivity().getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
@@ -151,6 +151,7 @@ public class RoomsFragment extends Fragment {
                                     String githubType = dynamicJObject.getString("githubType");
                                     String uId = dynamicJObject.getString("id");
                                     String name = dynamicJObject.getString("name");
+                                    String avatarurl=dynamicJObject.getString("avatarUrl");
                                     // userCount = 0 == user to user room since ONETWOONE doesnot have it
                                     int userCount = 0;
                                     if(!githubType.equals("ONETWOONE")) {
@@ -185,7 +186,7 @@ public class RoomsFragment extends Fragment {
                                     room.setUserCount(userCount);
                                     room.setUnreadItems(unreadItems);
                                     room.setMentions(mentions);
-
+                                    room.setAvatarImage(avatarurl);
                                     // Begin, copy and commit
                                     realm.beginTransaction();
                                     realm.copyToRealm(room);
