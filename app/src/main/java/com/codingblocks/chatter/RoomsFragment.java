@@ -70,7 +70,7 @@ public class RoomsFragment extends Fragment {
             }
         });
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         displayRooms(rooms);
 
