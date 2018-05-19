@@ -1,6 +1,7 @@
 package com.codingblocks.chatter;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -13,8 +14,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -38,7 +39,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class RoomFragment extends Fragment {
-
+    private Activity mActivity;
     public RoomFragment() {
         // Required empty public constructor
     }
@@ -47,7 +48,7 @@ public class RoomFragment extends Fragment {
 
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
     @BindView(R.id.inputMessage) EditText inputMessage;
-    @BindView(R.id.sendButton) Button sendButton;
+    @BindView(R.id.sendButton) ImageButton sendButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -65,7 +66,7 @@ public class RoomFragment extends Fragment {
             ).show();
         }
 
-        Realm.init(getActivity().getApplicationContext());
+        Realm.init(mActivity.getApplicationContext());
         final Realm realm = Realm.getDefaultInstance();
 
         final RealmResults<MessagesTable> messages =
@@ -186,7 +187,7 @@ public class RoomFragment extends Fragment {
                 /* Simple hack for compatibility as API 19 is required for
                        new JSONArray */
                     final String responseText = "{\"messages\":" + response.toString() + "}";
-                    getActivity().runOnUiThread(new Runnable() {
+                    mActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -195,7 +196,7 @@ public class RoomFragment extends Fragment {
                                 int i;
                                 for (i = 0; i < JArray.length(); i++) {
                                     // Initialize Realm
-                                    Realm.init(getActivity().getApplicationContext());
+                                    Realm.init(mActivity.getApplicationContext());
                                     // Get a Realm instance for this thread
                                     Realm realm = Realm.getDefaultInstance();
 
@@ -270,11 +271,11 @@ public class RoomFragment extends Fragment {
 
         String messageText = inputMessage.getText().toString();
         // Initialize Realm
-        Realm.init(getActivity().getApplicationContext());
+        Realm.init(mActivity.getApplicationContext());
         // Get a Realm instance for this thread
         Realm realm = Realm.getDefaultInstance();
         // Get the current max id in the Messages table
-        Number maxId = realm.where(MessagesTable.class).max("id");
+        final Number maxId = realm.where(MessagesTable.class).max("id");
         // If id is null, set it to 1, else set increment it by 1
         final int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
         MessagesTable message = new MessagesTable();
@@ -338,11 +339,11 @@ public class RoomFragment extends Fragment {
                         JSONObject userObject = dynamicJObject.getJSONObject("fromUser");
                         final String displayName = userObject.getString("displayName");
                         final String username = userObject.getString("username");
-                        getActivity().runOnUiThread(new Runnable() {
+                        mActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 // Initialize Realm
-                                Realm.init(getActivity().getApplicationContext());
+                                Realm.init(mActivity.getApplicationContext());
                                 // Get a Realm instance for this thread
                                 Realm realm = Realm.getDefaultInstance();
 
@@ -374,5 +375,11 @@ public class RoomFragment extends Fragment {
         }
 
         inputMessage.setText(R.string.type_in_placeholder);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (Activity) getContext();
     }
 }

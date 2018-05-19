@@ -53,7 +53,7 @@ public class RoomsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
         ButterKnife.bind(this, view);
 
-        Realm.init(getActivity().getApplicationContext());
+        Realm.init(mActivity.getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
 
         final RealmResults<RoomsTable> rooms = realm
@@ -143,7 +143,7 @@ public class RoomsFragment extends Fragment {
                                 int i;
                                 for(i = 0; i < JArray.length(); i++){
                                     // Initialize Realm
-                                    Realm.init(getActivity().getApplicationContext());
+                                    Realm.init(mActivity.getApplicationContext());
                                     // Get a Realm instance for this thread
                                     Realm realm = Realm.getDefaultInstance();
 
