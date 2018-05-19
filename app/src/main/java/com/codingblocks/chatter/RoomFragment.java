@@ -14,8 +14,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -48,7 +48,7 @@ public class RoomFragment extends Fragment {
 
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
     @BindView(R.id.inputMessage) EditText inputMessage;
-    @BindView(R.id.sendButton) ImageButton sendButton;
+    @BindView(R.id.sendButton) Button sendButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
