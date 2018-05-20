@@ -50,7 +50,7 @@ public class RoomsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
-        ButterKnife.bind(view);
+        ButterKnife.bind(this,view);
 
         Realm.init(getActivity().getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
@@ -70,7 +70,7 @@ public class RoomsFragment extends Fragment {
         });
 
         RecyclerView.LayoutManager layoutManager =
-                new LinearLayoutManager(getActivity().getApplicationContext());
+                new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         displayRooms(rooms);
 
