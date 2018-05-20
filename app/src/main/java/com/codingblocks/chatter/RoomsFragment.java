@@ -1,5 +1,6 @@
 package com.codingblocks.chatter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -36,6 +37,7 @@ import okhttp3.Response;
 public class RoomsFragment extends Fragment {
 
     private RoomsAdapter adapter;
+    private Activity mActivity;
 
     public RoomsFragment() {
         // Required empty public constructor
@@ -50,9 +52,9 @@ public class RoomsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
-        ButterKnife.bind(view);
+        ButterKnife.bind(this, view);
 
-        Realm.init(getActivity().getApplicationContext());
+        Realm.init(mActivity.getApplicationContext());
         Realm realm = Realm.getDefaultInstance();
 
         final RealmResults<RoomsTable> rooms = realm
@@ -70,7 +72,7 @@ public class RoomsFragment extends Fragment {
         });
 
         RecyclerView.LayoutManager layoutManager =
-                new LinearLayoutManager(getActivity().getApplicationContext());
+                new LinearLayoutManager(mActivity.getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
         displayRooms(rooms);
 
@@ -79,7 +81,7 @@ public class RoomsFragment extends Fragment {
 
     public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager =
-                (ConnectivityManager) getActivity()
+                (ConnectivityManager) mActivity
                         .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
@@ -92,7 +94,7 @@ public class RoomsFragment extends Fragment {
             getRooms(1);
         }
 
-        adapter = new RoomsAdapter(rooms, getActivity().getApplicationContext());
+        adapter = new RoomsAdapter(rooms, mActivity.getApplicationContext());
         recyclerView.setAdapter(adapter);
 
         /* Get rooms if network is available
@@ -104,15 +106,15 @@ public class RoomsFragment extends Fragment {
         if(isNetworkAvailable()) {
             /* Display a toast to inform the user that we are syncing */
             Toast.makeText(
-                    getActivity(), "Syncing data", Toast.LENGTH_SHORT
+                    mActivity, "Syncing data", Toast.LENGTH_SHORT
             ).show();
-            String accessToken = getActivity()
+            String accessToken = mActivity
                     .getSharedPreferences("UserPreferences", 0)
                     .getString("accessToken", "");
             if (accessToken.equals("")) {
-                Intent intent = new Intent(getActivity(), SplashActivity.class);
-                getActivity().startActivity(intent);
-                getActivity().finish();
+                Intent intent = new Intent(mActivity, SplashActivity.class);
+                mActivity.startActivity(intent);
+                mActivity.finish();
             }
             Request request = new Request.Builder()
                     .url("https://api.gitter.im/v1/rooms")
@@ -134,7 +136,7 @@ public class RoomsFragment extends Fragment {
                        new JSONArray */
                     final String responseText = "{\"rooms\":"+response.body().string()+"}";
                     // We will move to UI Thread
-                    getActivity().runOnUiThread(new Runnable() {
+                    mActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -143,7 +145,7 @@ public class RoomsFragment extends Fragment {
                                 int i;
                                 for(i = 0; i < JArray.length(); i++){
                                     // Initialize Realm
-                                    Realm.init(getActivity().getApplicationContext());
+                                    Realm.init(mActivity.getApplicationContext());
                                     // Get a Realm instance for this thread
                                     Realm realm = Realm.getDefaultInstance();
 
@@ -193,7 +195,7 @@ public class RoomsFragment extends Fragment {
                                 }
                                 if(i == 0){
                                     Toast.makeText(
-                                            getActivity(),
+                                            mActivity,
                                             "There seems to be no rooms, please try again later",
                                             Toast.LENGTH_SHORT
                                     ).show();
@@ -208,10 +210,16 @@ public class RoomsFragment extends Fragment {
             });
         /* Prompt user to turn on internet only if we have no rooms */
         } else if(severity == 1){
-            Intent intent = new Intent(getActivity(), NoNetworkActivity.class);
+            Intent intent = new Intent(mActivity, NoNetworkActivity.class);
             intent.putExtra("calledFrom", "DashboardActivity");
-            getActivity().startActivity(intent);
-            getActivity().finish();
+            mActivity.startActivity(intent);
+            mActivity.finish();
         }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (Activity) getContext();
     }
 }
