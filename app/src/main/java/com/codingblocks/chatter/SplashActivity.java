@@ -10,12 +10,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 
-public class SplashActivity extends AppCompatActivity{
+public class SplashActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_Splash);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.splash_activity);
 
         SharedPreferences sharedPreferences =
                 this.getApplicationContext().getSharedPreferences("UserPreferences", 0);
@@ -26,7 +26,7 @@ public class SplashActivity extends AppCompatActivity{
         // he there is internet connection (else he would be send to NoNetworkActivity)
         // or redirect him to the dashboard activity accordingly.
         if (accessToken.equals("")) {
-            if(isNetworkAvailable()){
+            if (isNetworkAvailable()) {
                 intent = new Intent(this, AuthenticationActivity.class);
             } else {
                 intent = new Intent(this, NoNetworkActivity.class);
