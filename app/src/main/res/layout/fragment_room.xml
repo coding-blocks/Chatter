@@ -29,7 +29,7 @@
         android:ems="10"
         android:fitsSystemWindows="true"
         android:inputType="textMultiLine"
-        android:text="@string/type_in_placeholder"
+        android:hint="@string/type_in_placeholder"
         android:textColor="#444" />
 
     <android.support.v7.widget.RecyclerView
