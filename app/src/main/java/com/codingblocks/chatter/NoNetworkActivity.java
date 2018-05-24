@@ -12,6 +12,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class NoNetworkActivity extends AppCompatActivity {
 
@@ -28,6 +29,7 @@ public class NoNetworkActivity extends AppCompatActivity {
         );
 
         setContentView(R.layout.no_network_activity);
+        ButterKnife.bind(this);
 
         final String calledFrom = getIntent().getStringExtra("calledFrom");
 
