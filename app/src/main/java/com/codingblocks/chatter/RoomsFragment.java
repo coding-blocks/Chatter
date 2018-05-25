@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,6 +110,7 @@ public class RoomsFragment extends Fragment {
             String accessToken = getActivity()
                     .getSharedPreferences("UserPreferences", 0)
                     .getString("accessToken", "");
+
             if (accessToken.equals("")) {
                 Intent intent = new Intent(getActivity(), SplashActivity.class);
                 getActivity().startActivity(intent);
@@ -134,7 +136,7 @@ public class RoomsFragment extends Fragment {
                        new JSONArray */
                     final String responseText = "{\"rooms\":"+response.body().string()+"}";
                     // We will move to UI Thread
-                    getActivity().runOnUiThread(new Runnable() {
+                    Thread thread=new Thread(new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -143,7 +145,7 @@ public class RoomsFragment extends Fragment {
                                 int i;
                                 for(i = 0; i < JArray.length(); i++){
                                     // Initialize Realm
-                                    Realm.init(getActivity().getApplicationContext());
+                                    Realm.init(getContext());
                                     // Get a Realm instance for this thread
                                     Realm realm = Realm.getDefaultInstance();
 
@@ -198,12 +200,13 @@ public class RoomsFragment extends Fragment {
                                             Toast.LENGTH_SHORT
                                     ).show();
                                 }
-                                adapter.notifyDataSetChanged();
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
                         }
                     });
+
+                    thread.start();
                 }
             });
         /* Prompt user to turn on internet only if we have no rooms */
