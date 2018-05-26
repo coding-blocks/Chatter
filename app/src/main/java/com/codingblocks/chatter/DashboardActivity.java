@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.MenuItem;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -61,9 +62,9 @@ public class DashboardActivity extends AppCompatActivity {
                 avatarUrl.equals("")) {
             if(isNetworkAvailable()){
                 Request request = new Request.Builder()
-                        .url("https://gitter.im/v1/user/me")
+                        .url("https://api.gitter.im/v1/user")
                         .addHeader("Accept", "application/json")
-                        .addHeader("Authorization:", "Bearer " + accessToken)
+                        .addHeader("Authorization", "Bearer " + accessToken)
                         .build();
 
                 client.newCall(request).enqueue(new Callback() {
@@ -76,7 +77,8 @@ public class DashboardActivity extends AppCompatActivity {
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         try {
                             String responseText = response.body().string();
-                            JSONObject Jobject = new JSONObject(responseText);
+                            JSONArray outerArray = new JSONArray(responseText);
+                            JSONObject Jobject = outerArray.getJSONObject(0);
                             final String username = Jobject.getString("username");
                             final String idOfUser = Jobject.getString("id");
                             final String displayName = Jobject.getString("displayName");
