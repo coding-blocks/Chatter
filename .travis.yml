@@ -55,6 +55,4 @@ cache:
     - $HOME/.android/build-cache
     - "${TRAVIS_BUILD_DIR}/android/gradle/caches/"
     - "${TRAVIS_BUILD_DIR}/android/gradle/wrapper/dists/"
-branches:
-  only:
-    - master
+
