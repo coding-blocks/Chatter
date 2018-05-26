@@ -11,9 +11,6 @@ env:
     - EMULATOR_API=19 ANDROID_ABI=armeabi-v7a ANDROID_TAG=google_apis
 android:
  components:
- - tools
- - platform-tools
- - tools
  - build-tools-$BUILD_TOOLS
  - android-$EMULATOR_API
  - android-$TARGET_SDK
