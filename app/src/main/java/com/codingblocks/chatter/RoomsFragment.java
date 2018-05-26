@@ -134,6 +134,8 @@ public class RoomsFragment extends Fragment {
                        new JSONArray */
                     final String responseText = "{\"rooms\":"+response.body().string()+"}";
                     // We will move to UI Thread
+                    if(getActivity() == null)
+                        return;
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
