@@ -205,7 +205,6 @@ public class RoomsFragment extends Fragment {
                             }
                         }
                     });
-
                     thread.start();
                 }
             });
