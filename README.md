@@ -2,6 +2,7 @@
 Chat app for gitter
 
 [![CircleCI](https://img.shields.io/circleci/project/github/coding-blocks/Chatter.svg)](https://circleci.com/gh/coding-blocks/Chatter)
+[![Build Status](https://travis-ci.org/coding-blocks/Chatter.svg?branch=development)](https://travis-ci.org/coding-blocks/Chatter)
 
 Screenshots :
 
