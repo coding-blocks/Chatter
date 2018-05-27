@@ -153,6 +153,7 @@ public class RoomsFragment extends Fragment {
                                     String githubType = dynamicJObject.getString("githubType");
                                     String uId = dynamicJObject.getString("id");
                                     String name = dynamicJObject.getString("name");
+                                    String url =dynamicJObject.getString("avatarUrl");
                                     // userCount = 0 == user to user room since ONETWOONE doesnot have it
                                     int userCount = 0;
                                     if(!githubType.equals("ONETWOONE")) {
@@ -187,6 +188,7 @@ public class RoomsFragment extends Fragment {
                                     room.setUserCount(userCount);
                                     room.setUnreadItems(unreadItems);
                                     room.setMentions(mentions);
+                                    room.setRoomAvatar(url);
 
                                     // Begin, copy and commit
                                     realm.beginTransaction();

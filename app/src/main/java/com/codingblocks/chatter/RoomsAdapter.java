@@ -5,7 +5,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import io.realm.RealmResults;
 
@@ -17,11 +20,13 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView roomName;
         public TextView roomUnread;
+        public ImageView avatarImage;
 
         public MyViewHolder(View view) {
             super(view);
             roomName = (TextView) view.findViewById(R.id.room_name);
             roomUnread = (TextView) view.findViewById(R.id.room_unread);
+            avatarImage= (ImageView) view.findViewById(R.id.avatar);
         }
     }
 
@@ -42,6 +47,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
     public void onBindViewHolder(final RoomsAdapter.MyViewHolder myViewHolder, int i) {
         RoomsTable room = rooms.get(i);
         myViewHolder.roomName.setText(room.getRoomName());
+        Picasso.get().load(room.getRoomAvatar()).into(myViewHolder.avatarImage);
         if(room.getMentions() > 0){
             myViewHolder.roomUnread.setText("@");
             myViewHolder.roomUnread.setBackgroundColor(
