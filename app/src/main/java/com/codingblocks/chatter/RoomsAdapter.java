@@ -45,7 +45,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
 
     @Override
     public void onBindViewHolder(final RoomsAdapter.MyViewHolder myViewHolder, int i) {
-        RoomsTable room = rooms.get(i);
+        final RoomsTable room = rooms.get(i);
         myViewHolder.roomName.setText(room.getRoomName());
         Picasso.get().load(room.getRoomAvatar()).into(myViewHolder.avatarImage);
         if(room.getMentions() > 0){
@@ -59,10 +59,10 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
         } else {
             myViewHolder.roomUnread.setText(Integer.toString(room.getUnreadItems()));
         }
-        final String roomId = room.getuId();
         myViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                final String roomId = room.getuId();
                 ((DashboardActivity) myViewHolder.itemView.getContext())
                         .openRoom(roomId);
             }

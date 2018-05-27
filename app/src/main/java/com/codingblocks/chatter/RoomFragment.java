@@ -10,11 +10,13 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -42,18 +44,19 @@ public class RoomFragment extends Fragment {
     public RoomFragment() {
         // Required empty public constructor
     }
+    private MessagesAdapter adapter;
 
     private OkHttpClient client = new OkHttpClient();
 
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
     @BindView(R.id.inputMessage) EditText inputMessage;
-    @BindView(R.id.sendButton) Button sendButton;
+    @BindView(R.id.sendButton) ImageButton sendButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
-        ButterKnife.bind(view);
+        ButterKnife.bind(this,view);
         Bundle bundle = this.getArguments();
 
         final String roomId = bundle.getString("RoomId", " ");
@@ -71,18 +74,19 @@ public class RoomFragment extends Fragment {
         final RealmResults<MessagesTable> messages =
                 realm.where(MessagesTable.class)
                 .greaterThan("id", 0)
-                .findAllSorted("id", Sort.DESCENDING);
+                .findAllSorted("id", Sort.ASCENDING);
 
         final RealmResults<RoomsTable> currentRoom =
                 realm.where(RoomsTable.class)
-                .equalTo("roomId", roomId)
+                .equalTo("uId", roomId)
                 .findAll();
         /* Add on change listener for messages so that we can get live results  */
         messages.addChangeListener(new RealmChangeListener<RealmResults<MessagesTable>>() {
             @Override
             public void onChange(RealmResults<MessagesTable> rooms) {
                 // Update the Recycler View
-                displayMessages(messages, roomId);
+                //displayMessages(messages, roomId);
+                adapter.notifyDataSetChanged();
             }
         });
 
@@ -90,8 +94,9 @@ public class RoomFragment extends Fragment {
                 new LinearLayoutManager(getActivity().getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
         displayMessages(messages, roomId);
+        recyclerView.scrollToPosition(messages.size()-1);
 
-        if(!currentRoom.get(0).getDraftMessage().equals("")){
+        if(currentRoom.get(0).getDraftMessage() !=null){
             inputMessage.setText(currentRoom.get(0).getDraftMessage());
         }
 
@@ -146,8 +151,7 @@ public class RoomFragment extends Fragment {
         if(messages.size() == 0){
             getMessages(1, roomId);
         }
-        RecyclerView.Adapter adapter =
-                new MessagesAdapter(messages, getActivity().getApplicationContext());
+       adapter = new MessagesAdapter(messages, getActivity().getApplicationContext());
         recyclerView.setAdapter(adapter);
         /* Get messages if network is available
            [we have old ones but checking for updates] */
@@ -160,6 +164,28 @@ public class RoomFragment extends Fragment {
             Toast.makeText(
                     getActivity(), "Syncing data", Toast.LENGTH_SHORT
             ).show();
+
+            // Initialize Realm
+            Realm.init(getActivity().getApplicationContext());
+            // Get a Realm instance to delete the previous message
+            Realm realm = Realm.getDefaultInstance();
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.deleteAll();
+                }
+            }, new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                    Log.d("Rishabh", "data deleted");
+                }
+            }, new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable error) {
+                    Log.d("Rishabh","Data error occur");
+                }
+            });
+
             String accessToken = getActivity()
                     .getSharedPreferences("UserPreferences", 0)
                     .getString("accessToken", "");
@@ -168,10 +194,9 @@ public class RoomFragment extends Fragment {
                 getActivity().startActivity(intent);
                 getActivity().finish();
             }
+
             Request request = new Request.Builder()
-                    .url("https://gitter.im/v1/rooms/:" + roomId + "/chatMessages")
-                    .addHeader("Accept", "application/json")
-                    .addHeader("Authorization:", "Bearer " + accessToken)
+                    .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?" +"access_token=" + accessToken)
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
@@ -185,7 +210,7 @@ public class RoomFragment extends Fragment {
                         throws IOException {
                 /* Simple hack for compatibility as API 19 is required for
                        new JSONArray */
-                    final String responseText = "{\"messages\":" + response.toString() + "}";
+                    final String responseText = "{\"messages\":" + response.body().string() + "}";
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -207,6 +232,7 @@ public class RoomFragment extends Fragment {
                                     JSONObject userObject = dynamicJObject.getJSONObject("fromUser");
                                     String displayName = userObject.getString("displayName");
                                     String username = userObject.getString("username");
+                                    String avatarUrl=userObject.getString("avatarUrlMedium");
 
                                     // If message exists already
                                     final RealmResults<MessagesTable> containedMessage =
@@ -226,6 +252,7 @@ public class RoomFragment extends Fragment {
                                         // Delete that message, so you can push an update ;)
                                         realm.beginTransaction();
                                         containedMessage.deleteFirstFromRealm();
+
                                         realm.commitTransaction();
                                     }
 
@@ -239,10 +266,20 @@ public class RoomFragment extends Fragment {
                                     message.setDisplayName(displayName);
                                     message.setRoomId(roomId);
                                     message.setUsername(username);
+                                    message.setUserAvater(avatarUrl);
                                     // Begin, copy and commit
                                     realm.beginTransaction();
                                     realm.copyToRealm(message);
                                     realm.commitTransaction();
+
+                                    final RealmResults<MessagesTable> messages =
+                                            realm.where(MessagesTable.class)
+                                                    .greaterThan("id", 0)
+                                                    .findAllSorted("id", Sort.ASCENDING);
+                                    adapter.notifyDataSetChanged();
+                                    recyclerView.smoothScrollToPosition(messages.size()-1);
+
+
                                 }
                                 if (i == 0) {
                                     Toast.makeText(
@@ -316,6 +353,7 @@ public class RoomFragment extends Fragment {
                             + currentRoom.get(0).getuId()
                             + "/chatMessages")
                     .addHeader("Accept", "application/json")
+                    .addHeader("Content-Type", "application/json")
                     .addHeader("Authorization:", "Bearer " + accessToken)
                     .post(requestBody)
                     .build();
@@ -372,7 +410,5 @@ public class RoomFragment extends Fragment {
                 }
             });
         }
-
-        inputMessage.setHint(R.string.type_in_placeholder);
     }
 }
