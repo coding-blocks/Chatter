@@ -1,6 +1,5 @@
 package com.codingblocks.chatter;
 
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,17 +7,16 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
-import butterknife.BindView;
 import butterknife.ButterKnife;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -28,11 +26,9 @@ import okhttp3.Response;
 
 public class DashboardActivity extends AppCompatActivity {
 
-    @BindView(R.id.nav_view) BottomNavigationView bottomNavigationView;
 
     OkHttpClient client = new OkHttpClient();
 
-    public int savedMenuItemId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +50,12 @@ public class DashboardActivity extends AppCompatActivity {
 
         /* Get the data from the Gitter API if they are not avaiable if
            internet is also not available redirect to NoNetwirk Activity */
-        if(username.equals("") ||
+        if (username.equals("") ||
                 idOfUser.equals("") ||
                 displayName.equals("") ||
                 userUrl.equals("") ||
                 avatarUrl.equals("")) {
-            if(isNetworkAvailable()){
+            if (isNetworkAvailable()) {
                 Request request = new Request.Builder()
                         .url("https://gitter.im/v1/user/me")
                         .addHeader("Accept", "application/json")
@@ -110,44 +106,10 @@ public class DashboardActivity extends AppCompatActivity {
                 DashboardActivity.this.finish();
             }
         }
-
-        if(savedInstanceState == null){
-            savedMenuItemId = bottomNavigationView.getMenu().getItem(0).getItemId();
-        } else {
-            savedMenuItemId = savedInstanceState.getInt("arg_last_menu_item_id");
-        }
-        selectFragment(savedMenuItemId);
-
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                selectFragment(menuItem.getItemId());
-                return true;
-            }
-        });
-        NotificationManager nManager = (NotificationManager)
-                this.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nManager != null) {
-            nManager.cancel(1234567890);
-        }
-    }
-
-    public void selectFragment(int id){
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        switch(id) {
-            case R.id.action_dashboard:
-                transaction.replace(R.id.fragment_holder, new DashboardFragment());
-                break;
-            case R.id.action_rooms:
-                transaction.replace(R.id.fragment_holder, new RoomsFragment());
-                break;
-            case R.id.action_settings:
-                transaction.replace(R.id.fragment_holder, new SettingsFragment());
-                break;
-        }
-        // Save the menu id and commit the transaction
-        savedMenuItemId = id;
+        transaction.replace(R.id.fragment_holder, new RoomsFragment());
         transaction.commit();
+
     }
 
     public boolean isNetworkAvailable() {
@@ -157,14 +119,31 @@ public class DashboardActivity extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void openRoom(String id){
+    public void openRoom(String id) {
         Bundle bundle = new Bundle();
         bundle.putString("RoomId", id);
-        RoomFragment roomFragment = new RoomFragment();
-        roomFragment.setArguments(bundle);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragment_holder, roomFragment)
-                .commit();
+        Intent roomIntent = new Intent(DashboardActivity.this, RoomActivity.class);
+        roomIntent.putExtras(bundle);
+        startActivity(roomIntent);
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.my_options_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.preferences:
+                startActivity(new Intent(DashboardActivity.this,SettingsActivity.class));
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
