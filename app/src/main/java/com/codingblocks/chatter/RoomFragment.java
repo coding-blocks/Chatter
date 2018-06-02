@@ -14,7 +14,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -28,7 +27,6 @@ import java.io.IOException;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
@@ -81,7 +79,7 @@ public class RoomFragment extends Fragment {
 
         messages = realm.where(MessagesTable.class)
                 .greaterThan("id", 0)
-                .findAllSorted("id", Sort.DESCENDING);
+                .findAllSorted("id", Sort.ASCENDING);
 
         final RealmResults<RoomsTable> currentRoom =
                 realm.where(RoomsTable.class)
@@ -162,9 +160,10 @@ public class RoomFragment extends Fragment {
                 new LinearLayoutManager(getActivity().getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
+        recyclerView.smoothScrollToPosition(messages.size()-1);
         /* Get messages if network is available
            [we have old ones but checking for updates] */
-//        getMessages(0, roomId);
+        getMessages(0, roomId);
     }
 
     public void getMessages(int severity, final String roomId) {
@@ -181,6 +180,17 @@ public class RoomFragment extends Fragment {
                 getActivity().startActivity(intent);
                 getActivity().finish();
             }
+
+            // Initialize Realm
+            Realm.init(getActivity().getApplicationContext());
+            // Get a Realm instance for this thread
+            final Realm realm = Realm.getDefaultInstance();
+            RealmResults<MessagesTable> results = realm.where(MessagesTable.class).findAll();
+            realm.beginTransaction();
+            results.deleteAllFromRealm();
+            realm.commitTransaction();
+
+
             Request request = new Request.Builder()
                     .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?access_token="+accessToken)
 //                    .addHeader("Accept", "application/json")
@@ -209,7 +219,7 @@ public class RoomFragment extends Fragment {
                             // Initialize Realm
                             Realm.init(getActivity().getApplicationContext());
                             // Get a Realm instance for this thread
-                            Realm realm = Realm.getDefaultInstance();
+                            final Realm realm = Realm.getDefaultInstance();
 
                             JSONObject dynamicJObject = JArray.getJSONObject(i);
                             String uId = dynamicJObject.getString("id");
@@ -219,6 +229,7 @@ public class RoomFragment extends Fragment {
                             JSONObject userObject = dynamicJObject.getJSONObject("fromUser");
                             String displayName = userObject.getString("displayName");
                             String username = userObject.getString("username");
+                            String avatarUrl=userObject.getString("avatarUrlMedium");
 //                            Log.e("TAG JSON " , "run: " + i );
 //                             If message exists already
 //                            final RealmResults<MessagesTable> containedMessage =
@@ -251,11 +262,13 @@ public class RoomFragment extends Fragment {
                             message.setDisplayName(displayName);
                             message.setRoomId(roomId);
                             message.setUsername(username);
+                            message.setUserAvater(avatarUrl);
                             // Begin, copy and commit
                             try {
                                 realm.beginTransaction();
                                 realm.copyToRealmOrUpdate(message);
                                 realm.commitTransaction();
+
                             }catch (RealmPrimaryKeyConstraintException pke){
                                 pke.printStackTrace();
                             }
@@ -273,7 +286,13 @@ public class RoomFragment extends Fragment {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                displayMessages(messages, roomId);
+                                final RealmResults<MessagesTable> messages =
+                                        realm.where(MessagesTable.class)
+                                                .greaterThan("id", 0)
+                                                .findAllSorted("id", Sort.ASCENDING);
+                                adapter.notifyDataSetChanged();
+                                recyclerView.smoothScrollToPosition(messages.size()-1);
+                                //displayMessages(messages, roomId);
                             }
                         });
                     }
