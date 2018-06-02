@@ -2,6 +2,7 @@ package com.codingblocks.chatter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +47,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             myViewHolder.username.setText(message.getDisplayName());
             // A timestamp looks like this 2014-03-25T11:51:32.289Z
             String timestamp = message.getTimestamp();
+            Log.e("TAG", "onBindViewHolder: " + message.getText());
             if(!timestamp.equals("sending")){
                 timestamp = timestamp.substring(0, timestamp.charAt('T'))+" "+
                         timestamp.substring(timestamp.charAt('T')+1, timestamp.charAt('T')+5);
@@ -57,6 +59,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
 
         @Override
         public int getItemCount() {
+            Log.e("TAG", "getItemCount: " + messages.size());
             return messages.size();
         }
 }

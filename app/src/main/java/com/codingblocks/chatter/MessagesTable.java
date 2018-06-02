@@ -5,8 +5,8 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
 public class MessagesTable extends RealmObject {
-    @PrimaryKey
     private int id;
+    @PrimaryKey
     private String uId;
     private String text;
     private String timestamp;

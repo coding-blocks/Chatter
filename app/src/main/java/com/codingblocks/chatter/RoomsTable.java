@@ -4,8 +4,8 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
 public class RoomsTable extends RealmObject {
-    @PrimaryKey
     private int id;
+    @PrimaryKey
     private String uId;
     private String roomName;
     private int userCount;
