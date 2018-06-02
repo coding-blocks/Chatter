@@ -5,7 +5,7 @@
     tools:context="com.codingblocks.chatter.RoomFragment"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    android:gravity="bottom">
+    >
 
     <ImageButton
         android:id="@+id/sendButton"
@@ -16,6 +16,7 @@
         android:layout_below="@+id/recycler_view"
         android:layout_gravity="bottom|right"
         android:layout_marginRight="5dp"
+        android:layout_alignParentBottom="true"
         android:background="@drawable/ic_menu_send"
         android:contentDescription="@string/sent_button" />
 

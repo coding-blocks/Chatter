@@ -22,6 +22,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -60,12 +61,17 @@ public class DashboardActivity extends AppCompatActivity {
                 userUrl.equals("") ||
                 avatarUrl.equals("")) {
             if(isNetworkAvailable()){
+
                 Request request = new Request.Builder()
-                        .url("https://gitter.im/v1/user/me")
+                        .url("https://api.gitter.im/v1/user/me")
                         .addHeader("Accept", "application/json")
-                        .addHeader("Authorization:", "Bearer " + accessToken)
                         .build();
 
+                HttpUrl url = request.url().newBuilder()
+                        .addQueryParameter("access_token", accessToken)
+                        .build();
+
+                request = request.newBuilder().url(url).build();
                 client.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {

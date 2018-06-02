@@ -98,7 +98,7 @@ public class RoomsFragment extends Fragment {
 
         /* Get rooms if network is available
            [we have old ones but checking for updates] */
-        getRooms(0);
+        //getRooms(0);
     }
 
     public void getRooms(int severity){
@@ -192,15 +192,20 @@ public class RoomsFragment extends Fragment {
 
                                     // Begin, copy and commit
                                     realm.beginTransaction();
-                                    realm.copyToRealm(room);
+                                    realm.copyToRealmOrUpdate(room);
                                     realm.commitTransaction();
                                 }
                                 if(i == 0){
-                                    Toast.makeText(
-                                            getActivity(),
-                                            "There seems to be no rooms, please try again later",
-                                            Toast.LENGTH_SHORT
-                                    ).show();
+                                    getActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(
+                                                    getActivity(),
+                                                    "There seems to be no rooms, please try again later",
+                                                    Toast.LENGTH_SHORT
+                                            ).show();
+                                        }
+                                    });
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
