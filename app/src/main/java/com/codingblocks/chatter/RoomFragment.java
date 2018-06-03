@@ -1,10 +1,12 @@
 package com.codingblocks.chatter;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -14,7 +16,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -24,14 +25,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
-import io.realm.Sort;
-import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -55,17 +54,21 @@ public class RoomFragment extends Fragment {
     @BindView(R.id.sendButton)
     ImageButton sendButton;
     String roomId;
-    RealmResults<MessagesTable> messages;
+    List<MessagesTable> messages;
+    RoomsDatabase roomdb;
+    RoomsDao roomsDao;
+    MessagesDatabase messagesDatabase;
+    MessagesDao messagesDao;
 
+    @SuppressLint("StaticFieldLeak")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
-        ButterKnife.bind(this,view);
+        ButterKnife.bind(this, view);
         Bundle bundle = this.getArguments();
 
         roomId = bundle.getString("RoomId", " ");
-        Log.e("TAG", "onCreateView: " + roomId);
 
         if (roomId.equals(" ")) {
             Toast.makeText(
@@ -75,18 +78,51 @@ public class RoomFragment extends Fragment {
             ).show();
         }
 
-        Realm.init(getActivity().getApplicationContext());
-        final Realm realm = Realm.getDefaultInstance();
+//        Realm.init(getActivity().getApplicationContext());
+//        final Realm realm = Realm.getDefaultInstance();
 
 
-        messages = realm.where(MessagesTable.class)
-                .greaterThan("id", 0)
-                .findAllSorted("id", Sort.DESCENDING);
+//        messages = realm.where(MessagesTable.class)
+//                .greaterThan("id", 0)
+//                .equalTo("roomId",roomId)
+//                .findAllSorted("id", Sort.DESCENDING);
 
-        final RealmResults<RoomsTable> currentRoom =
-                realm.where(RoomsTable.class)
-                        .equalTo("uId", roomId)
-                        .findAll();
+        messagesDatabase = MessagesDatabase.getInstance(getContext());
+        messagesDao = messagesDatabase.messagesDao();
+        messages = new ArrayList<>();
+        new AsyncTask<Void, Void, List<MessagesTable>>() {
+
+            @Override
+            protected List<MessagesTable> doInBackground(Void... voids) {
+                return messagesDao.getRoomMessages(roomId);
+            }
+
+            @Override
+            protected void onPostExecute(List<MessagesTable> rooms) {
+                messages.clear();
+                messages.addAll(rooms);
+            }
+        }.execute();
+
+
+        roomdb = RoomsDatabase.getInstance(getContext());
+        roomsDao = roomdb.roomsDao();
+        final List<RoomsTable> currentRoom = new ArrayList<>();
+
+        new AsyncTask<Void, Void, List<RoomsTable>>() {
+
+            @Override
+            protected List<RoomsTable> doInBackground(Void... voids) {
+                return roomsDao.getRoomsWithuId(roomId);
+            }
+
+            @Override
+            protected void onPostExecute(List<RoomsTable> rooms) {
+                currentRoom.clear();
+                currentRoom.addAll(rooms);
+            }
+        }.execute();
+
 
         /* Add on change listener for messages so that we can get live results  */
 //        messages.addChangeListener(new RealmChangeListener<RealmResults<MessagesTable>>() {
@@ -112,21 +148,21 @@ public class RoomFragment extends Fragment {
                 }
             }
         });
-        inputMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-                if (inputMessage.getText().toString().trim().equals("")) {
-                    inputMessage.setHint(R.string.type_in_placeholder);
-                } else {
-                    realm.executeTransaction(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            currentRoom.get(0).setDraftMessage(inputMessage.getText().toString());
-                        }
-                    });
-                }
-            }
-        });
+//        inputMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//            @Override
+//            public void onFocusChange(View view, boolean b) {
+//                if (inputMessage.getText().toString().trim().equals("")) {
+//                    inputMessage.setHint(R.string.type_in_placeholder);
+//                } else {
+//                    realm.executeTransaction(new Realm.Transaction() {
+//                        @Override
+//                        public void execute(Realm realm) {
+//                            currentRoom.get(0).setDraftMessage(inputMessage.getText().toString());
+//                        }
+//                    });
+//                }
+//            }
+//        });
 
         /* Sent message button */
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -151,15 +187,17 @@ public class RoomFragment extends Fragment {
 
     RecyclerView.Adapter adapter;
 
-    public void displayMessages(RealmResults<MessagesTable> messages, String roomId) {
+    public void displayMessages(List<MessagesTable> messages, String roomId) {
         /* No messages, let's get them first */
         if (messages.size() == 0) {
             getMessages(1, roomId);
         }
 
         adapter = new MessagesAdapter(messages, getActivity().getApplicationContext());
-        RecyclerView.LayoutManager layoutManager =
+        LinearLayoutManager layoutManager =
                 new LinearLayoutManager(getActivity().getApplicationContext());
+
+        layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
         /* Get messages if network is available
@@ -182,7 +220,7 @@ public class RoomFragment extends Fragment {
                 getActivity().finish();
             }
             Request request = new Request.Builder()
-                    .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?access_token="+accessToken)
+                    .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?access_token=" + accessToken)
 //                    .addHeader("Accept", "application/json")
 //                    .addHeader("Authorization:", "Bearer " + accessToken)
                     .build();
@@ -193,6 +231,7 @@ public class RoomFragment extends Fragment {
                     e.printStackTrace();
                 }
 
+                @SuppressLint("StaticFieldLeak")
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response)
                         throws IOException {
@@ -207,9 +246,9 @@ public class RoomFragment extends Fragment {
                         int i;
                         for (i = 0; i < JArray.length(); i++) {
                             // Initialize Realm
-                            Realm.init(getActivity().getApplicationContext());
+//                            Realm.init(getActivity().getApplicationContext());
                             // Get a Realm instance for this thread
-                            Realm realm = Realm.getDefaultInstance();
+//                            Realm realm = Realm.getDefaultInstance();
 
                             JSONObject dynamicJObject = JArray.getJSONObject(i);
                             String uId = dynamicJObject.getString("id");
@@ -227,9 +266,9 @@ public class RoomFragment extends Fragment {
 //                                            .findAllSorted("id", Sort.DESCENDING);
 
                             // Get the current max id in the EntityName table
-                            Number maxId = realm.where(MessagesTable.class).max("id");
+                            int maxId = messagesDao.getMax();
                             // If id is null, set it to 1, else set increment it by 1
-                            int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+                            int nextId = (maxId == 0) ? 1 : maxId + 1;
 
 //                            if (containedMessage.size() == 1) {
 //                                // Save the id so that if when we delete, we can insert it into the empty slot
@@ -241,7 +280,7 @@ public class RoomFragment extends Fragment {
 //                                realm.commitTransaction();
 //                            }
 
-                            MessagesTable message = new MessagesTable();
+                            final MessagesTable message = new MessagesTable();
                             message.setId(nextId);
                             message.setUId(uId);
                             message.setText(text);
@@ -252,13 +291,31 @@ public class RoomFragment extends Fragment {
                             message.setRoomId(roomId);
                             message.setUsername(username);
                             // Begin, copy and commit
-                            try {
-                                realm.beginTransaction();
-                                realm.copyToRealmOrUpdate(message);
-                                realm.commitTransaction();
-                            }catch (RealmPrimaryKeyConstraintException pke){
-                                pke.printStackTrace();
-                            }
+//                            try {
+//                                realm.beginTransaction();
+//                                realm.copyToRealmOrUpdate(message);
+//                                realm.commitTransaction();
+//                            } catch (RealmPrimaryKeyConstraintException pke) {
+//                                pke.printStackTrace();
+//                            }
+                            new AsyncTask<Void, Void, Void>() {
+
+                                @Override
+                                protected Void doInBackground(Void... voids) {
+                                    try {
+                                        messagesDao.addMessages(message);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    return null;
+                                }
+
+                                @Override
+                                protected void onPostExecute(Void aVoid) {
+                                    super.onPostExecute(aVoid);
+                                    adapter.notifyDataSetChanged();
+                                }
+                            }.execute();
                         }
                         if (i == 0) {
                             Toast.makeText(
@@ -270,12 +327,13 @@ public class RoomFragment extends Fragment {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     } finally {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                displayMessages(messages, roomId);
-                            }
-                        });
+                        if (getActivity() != null)
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    displayMessages(messages, roomId);
+                                }
+                            });
                     }
                 }
             });
@@ -287,18 +345,20 @@ public class RoomFragment extends Fragment {
         }
     }
 
-    public void sendMessage(RealmResults<RoomsTable> currentRoom) {
+    @SuppressLint("StaticFieldLeak")
+    public void sendMessage(List<RoomsTable> currentRoom) {
 
         String messageText = inputMessage.getText().toString();
         // Initialize Realm
-        Realm.init(getActivity().getApplicationContext());
-        // Get a Realm instance for this thread
-        Realm realm = Realm.getDefaultInstance();
+//        Realm.init(getActivity().getApplicationContext());
+//        // Get a Realm instance for this thread
+//        Realm realm = Realm.getDefaultInstance();
         // Get the current max id in the Messages table
-        Number maxId = realm.where(MessagesTable.class).max("id");
+        int maxId = messagesDao.getMax();
         // If id is null, set it to 1, else set increment it by 1
-        final int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
-        MessagesTable message = new MessagesTable();
+        final int nextId = (maxId == 0) ? 1 : maxId + 1;
+
+        final MessagesTable message = new MessagesTable();
         message.setId(nextId);
         message.setUId("NotSent"); // This will get updated when we sync
         message.setRoomId(currentRoom.get(0).getuId());
@@ -317,9 +377,24 @@ public class RoomFragment extends Fragment {
         message.setUsername(username);
 
         // Begin, copy and commit
-        realm.beginTransaction();
-        realm.copyToRealm(message);
-        realm.commitTransaction();
+//        realm.beginTransaction();
+//        realm.copyToRealm(message);
+//        realm.commitTransaction();
+
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                messagesDao.addMessages(message);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                adapter.notifyDataSetChanged();
+            }
+        }.execute();
 
         if (!isNetworkAvailable()) {
             Toast.makeText(getContext(), "Message will be send when you become online", Toast.LENGTH_SHORT).show();
@@ -363,14 +438,28 @@ public class RoomFragment extends Fragment {
                             @Override
                             public void run() {
                                 // Initialize Realm
-                                Realm.init(getActivity().getApplicationContext());
-                                // Get a Realm instance for this thread
-                                Realm realm = Realm.getDefaultInstance();
+//                                Realm.init(getActivity().getApplicationContext());
+//                                // Get a Realm instance for this thread
+//                                Realm realm = Realm.getDefaultInstance();
 
-                                RealmResults<MessagesTable> sentMessage =
-                                        realm.where(MessagesTable.class)
-                                                .equalTo("id", nextId)
-                                                .findAll();
+                                final List<MessagesTable> sentMessage = new ArrayList<>();
+//                                        realm.where(MessagesTable.class)
+//                                                .equalTo("id", nextId)
+//                                                .findAll();
+                                new AsyncTask<Void, Void, List<MessagesTable>>() {
+
+                                    @Override
+                                    protected List<MessagesTable> doInBackground(Void... voids) {
+                                        return messagesDao.getSentMessage(nextId);
+                                    }
+
+                                    @Override
+                                    protected void onPostExecute(List<MessagesTable> rooms) {
+                                        sentMessage.clear();
+                                        sentMessage.addAll(rooms);
+                                    }
+                                }.execute();
+
                                 sentMessage.get(0).setUId(uId);
                                 sentMessage.get(0).setText(text);
                                 sentMessage.get(0).setTimestamp(timestamp);
@@ -380,16 +469,30 @@ public class RoomFragment extends Fragment {
                                 sentMessage.get(0).setSentStatus(true);
 
                                 // Begin, copy and commit
-                                realm.beginTransaction();
-                                realm.copyToRealm(sentMessage);
-                                realm.commitTransaction();
+//                                realm.beginTransaction();
+//                                realm.copyToRealm(sentMessage);
+//                                realm.commitTransaction();
+                                new AsyncTask<Void, Void, Void>() {
+
+                                    @Override
+                                    protected Void doInBackground(Void... voids) {
+                                        messagesDao.addMultipleMessages(sentMessage);
+                                        return null;
+                                    }
+
+                                    @Override
+                                    protected void onPostExecute(Void aVoid) {
+                                        super.onPostExecute(aVoid);
+                                        adapter.notifyDataSetChanged();
+                                    }
+                                }.execute();
                             }
                         });
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        displayMessages(messages,roomId);
+                        displayMessages(messages, roomId);
                     }
                 }
             });

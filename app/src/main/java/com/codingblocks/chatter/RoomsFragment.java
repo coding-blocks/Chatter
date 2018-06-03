@@ -1,9 +1,11 @@
 package com.codingblocks.chatter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -20,11 +22,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
+
 import io.realm.RealmResults;
 import io.realm.Sort;
 import okhttp3.Call;
@@ -36,7 +41,12 @@ import okhttp3.Response;
 
 public class RoomsFragment extends Fragment {
 
+    private static final String TAG = "TestingGitter";
     private RoomsAdapter adapter;
+    List<RoomsTable> mRooms = new ArrayList<>();
+    RoomsDatabase db;
+    RoomsDao dao;
+
 
     public RoomsFragment() {
         // Required empty public constructor
@@ -44,36 +54,37 @@ public class RoomsFragment extends Fragment {
 
     private OkHttpClient client = new OkHttpClient();
 
-    @BindView(R.id.recycler_view) RecyclerView recyclerView;
+    @BindView(R.id.recycler_view)
+    RecyclerView recyclerView;
 
+    @SuppressLint("StaticFieldLeak")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
-        ButterKnife.bind(this,view);
+        ButterKnife.bind(this, view);
 
-        Realm.init(getActivity().getApplicationContext());
-        Realm realm = Realm.getDefaultInstance();
+        db = RoomsDatabase.getInstance(getContext());
+        dao = db.roomsDao();
+        new AsyncTask<Void, Void, List<RoomsTable>>() {
 
-        final RealmResults<RoomsTable> rooms = realm
-                .where(RoomsTable.class)
-                .greaterThan("id", 0)
-                .findAll();
-
-        /* Add on change listener for rooms so that we can get live results  */
-        rooms.addChangeListener(new RealmChangeListener<RealmResults<RoomsTable>>() {
             @Override
-            public void onChange(RealmResults<RoomsTable> rooms) {
-                // Update the Recycler View
+            protected List<RoomsTable> doInBackground(Void... voids) {
+                return dao.getAllRooms();
+            }
+
+            @Override
+            protected void onPostExecute(List<RoomsTable> notes) {
+                mRooms.addAll(notes);
                 adapter.notifyDataSetChanged();
             }
-        });
+        }.execute();
 
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        displayRooms(rooms);
+        displayRooms(mRooms);
 
         return view;
     }
@@ -86,14 +97,14 @@ public class RoomsFragment extends Fragment {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void displayRooms(RealmResults<RoomsTable> rooms){
+    public void displayRooms(List<RoomsTable> rooms) {
         /* No rooms, let's get them first */
-        if(rooms.size() == 0){
+        if (rooms.size() == 0) {
             /* Internet is needed for sure to get the rooms */
             getRooms(1);
         }
 
-        adapter = new RoomsAdapter(rooms, getActivity().getApplicationContext());
+        adapter = new RoomsAdapter(rooms, getContext());
         recyclerView.setAdapter(adapter);
 
         /* Get rooms if network is available
@@ -101,8 +112,8 @@ public class RoomsFragment extends Fragment {
         getRooms(0);
     }
 
-    public void getRooms(int severity){
-        if(isNetworkAvailable()) {
+    public void getRooms(int severity) {
+        if (isNetworkAvailable()) {
             /* Display a toast to inform the user that we are syncing */
             Toast.makeText(
                     getActivity(), "Syncing data", Toast.LENGTH_SHORT
@@ -134,54 +145,57 @@ public class RoomsFragment extends Fragment {
                         throws IOException {
                     /* Simple hack for compatibility as API 19 is required for
                        new JSONArray */
-                    final String responseText = "{\"rooms\":"+response.body().string()+"}";
+                    final String responseText = "{\"rooms\":" + response.body().string() + "}";
                     // We will move to UI Thread
-                    Thread thread=new Thread(new Runnable() {
+                    Thread thread = new Thread(new Runnable() {
+                        @SuppressLint("StaticFieldLeak")
                         @Override
                         public void run() {
                             try {
                                 JSONObject JObject = new JSONObject(responseText);
                                 JSONArray JArray = JObject.getJSONArray("rooms");
                                 int i;
-                                for(i = 0; i < JArray.length(); i++){
-                                    // Initialize Realm
-                                    Realm.init(getContext());
-                                    // Get a Realm instance for this thread
-                                    Realm realm = Realm.getDefaultInstance();
+                                for (i = 0; i < JArray.length(); i++) {
 
                                     JSONObject dynamicJObject = JArray.getJSONObject(i);
                                     String githubType = dynamicJObject.getString("githubType");
-                                    String uId = dynamicJObject.getString("id");
+                                    final String uId = dynamicJObject.getString("id");
                                     String name = dynamicJObject.getString("name");
-                                    String url =dynamicJObject.getString("avatarUrl");
+                                    String url = dynamicJObject.getString("avatarUrl");
                                     // userCount = 0 == user to user room since ONETWOONE doesnot have it
                                     int userCount = 0;
-                                    if(!githubType.equals("ONETWOONE")) {
+                                    if (!githubType.equals("ONETWOONE")) {
                                         userCount = dynamicJObject.getInt("userCount");
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
+                                    Log.i(TAG, "run: "+dynamicJObject.toString());
 
-                                    RealmResults<RoomsTable> containedRoom =
-                                            realm.where(RoomsTable.class)
-                                                    .equalTo("uId", uId)
-                                                    .findAllSorted("id", Sort.DESCENDING);
-
-                                    // Get the current max id in the EntityName table
-                                    Number maxId = realm.where(RoomsTable.class).max("id");
+//
+//                                    final List<RoomsTable> containedRoom = new ArrayList<>();
+//                                    new AsyncTask<Void, Void, List<RoomsTable>>() {
+//
+//                                        @Override
+//                                        protected List<RoomsTable> doInBackground(Void... voids) {
+//
+//                                            return dao.getRoomsWithuId(uId);
+//                                        }
+//
+//                                        @Override
+//                                        protected void onPostExecute(List<RoomsTable> rooms) {
+//                                            containedRoom.clear();
+//                                            containedRoom.addAll(rooms);
+//                                            Log.i(TAG, "onPostExecute: size of conatined room"+containedRoom.size()+"  "+containedRoom.get(0).getuId()+containedRoom.get(0).getRoomName()+"  "+containedRoom.get(0).getId());
+//                                        }
+//                                    }.execute();
+//
+//                                    // Get the current max id in the EntityName table
+                                    int maxId = dao.getMax();
+                                    Log.i(TAG, "onPostExecute: dao max"+dao.getMax());
                                     // If id is null, set it to 1, else set increment it by 1
-                                    int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+                                    int nextId = (maxId == 0) ? 1 : maxId + 1;
 
-                                    if(containedRoom.size() == 1){
-                                        // Save the id so that if when we delete, we can insert it into the empty slot
-                                        // since we are sorting by id
-                                        nextId = containedRoom.get(0).getId();
-                                        // Delete that room, so you can push an update ;)
-                                        realm.beginTransaction();
-                                        containedRoom.deleteFirstFromRealm();
-                                        realm.commitTransaction();
-                                    }
-                                    RoomsTable room = new RoomsTable();
+                                    final RoomsTable room = new RoomsTable();
                                     room.setId(nextId);
                                     room.setuId(uId);
                                     room.setRoomName(name);
@@ -189,13 +203,32 @@ public class RoomsFragment extends Fragment {
                                     room.setUnreadItems(unreadItems);
                                     room.setMentions(mentions);
                                     room.setRoomAvatar(url);
+//
+//                                    // Begin, copy and commit
+////                                    realm.beginTransaction();
+////                                    realm.copyToRealmOrUpdate(room);
+////                                    realm.commitTransaction();
+                                    new AsyncTask<Void, Void, Void>() {
 
-                                    // Begin, copy and commit
-                                    realm.beginTransaction();
-                                    realm.copyToRealmOrUpdate(room);
-                                    realm.commitTransaction();
+                                        @Override
+                                        protected Void doInBackground(Void... voids) {
+                                            try {
+                                                dao.addRooms(room);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+
+                                            return null;
+                                        }
+
+                                        @Override
+                                        protected void onPostExecute(Void aVoid) {
+                                            super.onPostExecute(aVoid);
+                                        }
+                                    }.execute();
                                 }
-                                if(i == 0){
+
+                                if (i == 0) {
                                     Toast.makeText(
                                             getActivity(),
                                             "There seems to be no rooms, please try again later",
@@ -210,8 +243,8 @@ public class RoomsFragment extends Fragment {
                     thread.start();
                 }
             });
-        /* Prompt user to turn on internet only if we have no rooms */
-        } else if(severity == 1){
+            /* Prompt user to turn on internet only if we have no rooms */
+        } else if (severity == 1) {
             Intent intent = new Intent(getActivity(), NoNetworkActivity.class);
             intent.putExtra("calledFrom", "DashboardActivity");
             getActivity().startActivity(intent);

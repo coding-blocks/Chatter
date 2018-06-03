@@ -1,13 +1,18 @@
 package com.codingblocks.chatter;
 
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
-public class MessagesTable extends RealmObject {
+
+@Entity(tableName = "messages")
+public class MessagesTable {
     private int id;
     @PrimaryKey
-    private String uId;
+    @NonNull
+    public String uId;
     private String text;
     private String timestamp;
     private String roomId;
@@ -16,23 +21,91 @@ public class MessagesTable extends RealmObject {
     private boolean unread;
     private boolean sentStatus;
 
-    public int getId(){return id;}
-    public String getuId(){return uId;}
-    public String getRoomId(){return roomId;}
-    public String getText(){return text;}
-    public String getTimestamp(){return timestamp;}
-    public String getUsername(){return username;}
-    public String getDisplayName(){return displayName;}
-    public boolean getUnread(){return unread;}
-    public boolean getSentStatus(){return sentStatus;}
+    public MessagesTable(int id, String uId, String text, String timestamp, String roomId, String username, String displayName, boolean unread, boolean sentStatus) {
+        this.id = id;
+        this.uId = uId;
+        this.text = text;
+        this.timestamp = timestamp;
+        this.roomId = roomId;
+        this.username = username;
+        this.displayName = displayName;
+        this.unread = unread;
+        this.sentStatus = sentStatus;
+    }
 
-    public void setId(int id){this.id = id;}
-    public void setUId(String uId){this.uId = uId;}
-    public void setText(String text){this.text = text;}
-    public void setRoomId(String roomId){this.roomId = roomId;}
-    public void setTimestamp(String timestamp){this.timestamp = timestamp;}
-    public void setUsername(String username){this.username = username;}
-    public void setDisplayName(String displayName){this.displayName = displayName;}
-    public void setUnread(boolean unread){this.unread = unread;}
-    public void setSentStatus(boolean sentStatus){this.sentStatus = sentStatus;}
+    @Ignore
+    public MessagesTable() {
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getuId() {
+        return uId;
+    }
+
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public boolean getUnread() {
+        return unread;
+    }
+
+    public boolean getSentStatus() {
+        return sentStatus;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setUId(String uId) {
+        this.uId = uId;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public void setUnread(boolean unread) {
+        this.unread = unread;
+    }
+
+    public void setSentStatus(boolean sentStatus) {
+        this.sentStatus = sentStatus;
+    }
 }

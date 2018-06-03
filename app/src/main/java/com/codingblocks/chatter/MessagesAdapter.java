@@ -8,11 +8,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.List;
+
 import io.realm.RealmResults;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> {
 
-    private RealmResults<MessagesTable> messages;
+    private List<MessagesTable> messages;
     private Context context;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -28,7 +30,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         }
     }
 
-    public MessagesAdapter(RealmResults<MessagesTable> messages, Context context) {
+    public MessagesAdapter(List<MessagesTable> messages, Context context) {
         this.messages = messages;
         this.context = context;
     }
