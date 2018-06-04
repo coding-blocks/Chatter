@@ -192,7 +192,7 @@ public class RoomsFragment extends Fragment {
 
                                     // Begin, copy and commit
                                     realm.beginTransaction();
-                                    realm.copyToRealm(room);
+                                    realm.copyToRealmOrUpdate(room);
                                     realm.commitTransaction();
                                 }
                                 if(i == 0){
