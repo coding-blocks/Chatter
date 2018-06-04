@@ -61,7 +61,7 @@ public class RoomFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
-        ButterKnife.bind(this,view);
+        ButterKnife.bind(this, view);
         Bundle bundle = this.getArguments();
 
         roomId = bundle.getString("RoomId", " ");
@@ -81,6 +81,7 @@ public class RoomFragment extends Fragment {
 
         messages = realm.where(MessagesTable.class)
                 .greaterThan("id", 0)
+                .equalTo("roomId", roomId)
                 .findAllSorted("id", Sort.DESCENDING);
 
         final RealmResults<RoomsTable> currentRoom =
@@ -158,9 +159,9 @@ public class RoomFragment extends Fragment {
         }
 
         adapter = new MessagesAdapter(messages, getActivity().getApplicationContext());
-        RecyclerView.LayoutManager layoutManager =
-                new LinearLayoutManager(getActivity().getApplicationContext());
-        recyclerView.setLayoutManager(layoutManager);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        mLayoutManager.setReverseLayout(true);
+        recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setAdapter(adapter);
         /* Get messages if network is available
            [we have old ones but checking for updates] */
@@ -182,7 +183,7 @@ public class RoomFragment extends Fragment {
                 getActivity().finish();
             }
             Request request = new Request.Builder()
-                    .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?access_token="+accessToken)
+                    .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?access_token=" + accessToken)
 //                    .addHeader("Accept", "application/json")
 //                    .addHeader("Authorization:", "Bearer " + accessToken)
                     .build();
@@ -219,6 +220,7 @@ public class RoomFragment extends Fragment {
                             JSONObject userObject = dynamicJObject.getJSONObject("fromUser");
                             String displayName = userObject.getString("displayName");
                             String username = userObject.getString("username");
+                            String avatarUrl = userObject.getString("avatarUrlMedium");
 //                            Log.e("TAG JSON " , "run: " + i );
 //                             If message exists already
 //                            final RealmResults<MessagesTable> containedMessage =
@@ -251,12 +253,14 @@ public class RoomFragment extends Fragment {
                             message.setDisplayName(displayName);
                             message.setRoomId(roomId);
                             message.setUsername(username);
+                            message.setUserAvater(avatarUrl);
+
                             // Begin, copy and commit
                             try {
                                 realm.beginTransaction();
                                 realm.copyToRealmOrUpdate(message);
                                 realm.commitTransaction();
-                            }catch (RealmPrimaryKeyConstraintException pke){
+                            } catch (RealmPrimaryKeyConstraintException pke) {
                                 pke.printStackTrace();
                             }
                         }
@@ -389,7 +393,7 @@ public class RoomFragment extends Fragment {
                         e.printStackTrace();
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        displayMessages(messages,roomId);
+                        displayMessages(messages, roomId);
                     }
                 }
             });
