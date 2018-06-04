@@ -2,6 +2,7 @@ package com.codingblocks.chatter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,6 +56,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             timestamp = timestamp.substring(0, 10)+"  "+ timestamp.substring(11,16);
             //= 11:51 2014-03-25
         }
+        Linkify.addLinks(myViewHolder.message, Linkify.WEB_URLS);
         Picasso.get().load(message.getUserAvater()).into(myViewHolder.userImage);
         myViewHolder.time.setText(timestamp); // or sending
         myViewHolder.message.setText(message.getText());
