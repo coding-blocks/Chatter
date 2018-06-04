@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="General Setting">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="notification_key"
+            android:summary="Notification will On and Off"
+            android:title="Notification" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="user_wifi"
+            android:summary="Messages comes only in Wifi Mode"
+            android:title="Wi-Fi" />
+
+    </PreferenceCategory>
+
+    <Preference
+        android:summary="Version 1.0"
+        android:title="Chatter App Version" />
+
+</PreferenceScreen>

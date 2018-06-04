@@ -12,6 +12,7 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.MenuItem;
+import android.widget.FrameLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,7 +30,7 @@ import okhttp3.Response;
 public class DashboardActivity extends AppCompatActivity {
 
     @BindView(R.id.nav_view) BottomNavigationView bottomNavigationView;
-
+    @BindView(R.id.fragment_holder) FrameLayout frameLayout;
     OkHttpClient client = new OkHttpClient();
 
     public int savedMenuItemId;
@@ -136,18 +137,24 @@ public class DashboardActivity extends AppCompatActivity {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         switch(id) {
             case R.id.action_dashboard:
+                frameLayout.removeAllViews();
                 transaction.replace(R.id.fragment_holder, new DashboardFragment());
+                transaction.commit();
                 break;
             case R.id.action_rooms:
+                frameLayout.removeAllViews();
                 transaction.replace(R.id.fragment_holder, new RoomsFragment());
+                transaction.commit();
                 break;
             case R.id.action_settings:
-                transaction.replace(R.id.fragment_holder, new SettingsFragment());
+                frameLayout.removeAllViews();
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_holder, new SettingsFragment())
+                        .commit();
                 break;
         }
         // Save the menu id and commit the transaction
         savedMenuItemId = id;
-        transaction.commit();
     }
 
     public boolean isNetworkAvailable() {
