@@ -2,7 +2,6 @@ package com.codingblocks.chatter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,26 +16,24 @@ import io.realm.RealmResults;
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> {
 
     private RealmResults<MessagesTable> messages;
-    private Context context;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView username;
         public TextView time;
         public TextView message;
-        public ImageView useravatar;
+        public ImageView userImage;
 
         public MyViewHolder(View view) {
             super(view);
-            username = (TextView) view.findViewById(R.id.username);
-            time = (TextView) view.findViewById(R.id.time);
-            message = (TextView) view.findViewById(R.id.message);
-            useravatar=(ImageView)view.findViewById(R.id.useravatar);
+            username = view.findViewById(R.id.username);
+            time = view.findViewById(R.id.time);
+            message = view.findViewById(R.id.message);
+            userImage = view.findViewById(R.id.useravatar);
         }
     }
 
     public MessagesAdapter(RealmResults<MessagesTable> messages, Context context) {
         this.messages = messages;
-        this.context = context;
     }
 
     @Override
@@ -58,10 +55,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             timestamp = timestamp.substring(0, 10)+"  "+ timestamp.substring(11,16);
             //= 11:51 2014-03-25
         }
+        Picasso.get().load(message.getUserAvater()).into(myViewHolder.userImage);
         myViewHolder.time.setText(timestamp); // or sending
         myViewHolder.message.setText(message.getText());
-        Linkify.addLinks(myViewHolder.message, Linkify.WEB_URLS);
-        Picasso.get().load(message.getUserAvater()).into(myViewHolder.useravatar);
     }
 
     @Override
