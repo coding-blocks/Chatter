@@ -17,4 +17,6 @@
     <string name="sent_button">sent icon</string>
     <string name="type_in_placeholder">Type in here to sent</string>
     <string name="_0">0</string>
+    <string name="all_rooms">All rooms</string>
+    <string name="preferences">Preferences</string>
 </resources>

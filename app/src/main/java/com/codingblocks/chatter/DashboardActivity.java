@@ -7,10 +7,13 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import org.json.JSONException;
@@ -27,8 +30,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class DashboardActivity extends AppCompatActivity {
-
-    @BindView(R.id.nav_view) BottomNavigationView bottomNavigationView;
 
     OkHttpClient client = new OkHttpClient();
 
@@ -111,20 +112,10 @@ public class DashboardActivity extends AppCompatActivity {
             }
         }
 
-        if(savedInstanceState == null){
-            savedMenuItemId = bottomNavigationView.getMenu().getItem(0).getItemId();
-        } else {
-            savedMenuItemId = savedInstanceState.getInt("arg_last_menu_item_id");
-        }
-        selectFragment(savedMenuItemId);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_holder, new RoomsFragment());
+        transaction.commit();
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                selectFragment(menuItem.getItemId());
-                return true;
-            }
-        });
         NotificationManager nManager = (NotificationManager)
                 this.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nManager != null) {
@@ -132,22 +123,24 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
-    public void selectFragment(int id){
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        switch(id) {
-            case R.id.action_dashboard:
-                transaction.replace(R.id.fragment_holder, new DashboardFragment());
-                break;
-            case R.id.action_rooms:
-                transaction.replace(R.id.fragment_holder, new RoomsFragment());
-                break;
-            case R.id.action_settings:
-                transaction.replace(R.id.fragment_holder, new SettingsFragment());
-                break;
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.preferences: {
+                Intent intent = new Intent();
+                intent.setClassName(this, MyPreferenceActivity.class.getName());
+                startActivity(intent);
+                return true;
+            }
         }
-        // Save the menu id and commit the transaction
-        savedMenuItemId = id;
-        transaction.commit();
+        return super.onOptionsItemSelected(item);
     }
 
     public boolean isNetworkAvailable() {
