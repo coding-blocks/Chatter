@@ -17,11 +17,13 @@ import io.realm.RealmResults;
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> {
 
     private RealmResults<MessagesTable> messages;
+    private Context context;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView username;
         public TextView time;
         public TextView message;
+
         public ImageView userImage;
 
         public MyViewHolder(View view) {
@@ -35,6 +37,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
 
     public MessagesAdapter(RealmResults<MessagesTable> messages, Context context) {
         this.messages = messages;
+        this.context = context;
     }
 
     @Override
