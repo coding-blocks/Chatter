@@ -69,6 +69,7 @@ public class RoomFragment extends Fragment {
         Bundle bundle = this.getArguments();
 
         roomId = bundle.getString("RoomId", " ");
+        Log.e("TAG", "onCreateView: " + roomId);
 
         if (roomId.equals(" ")) {
             Toast.makeText(
@@ -199,6 +200,9 @@ public class RoomFragment extends Fragment {
 
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        mLayoutManager.setReverseLayout(true);
+        recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setAdapter(adapter);
         /* Get messages if network is available
            [we have old ones but checking for updates] */
@@ -258,6 +262,7 @@ public class RoomFragment extends Fragment {
                             JSONObject userObject = dynamicJObject.getJSONObject("fromUser");
                             String displayName = userObject.getString("displayName");
                             String username = userObject.getString("username");
+                            String avatarUrl = userObject.getString("avatarUrlMedium");
 //                            Log.e("TAG JSON " , "run: " + i );
 //                             If message exists already
 //                            final RealmResults<MessagesTable> containedMessage =
@@ -290,6 +295,8 @@ public class RoomFragment extends Fragment {
                             message.setDisplayName(displayName);
                             message.setRoomId(roomId);
                             message.setUsername(username);
+                            message.setUserAvater(avatarUrl);
+
                             // Begin, copy and commit
 //                            try {
 //                                realm.beginTransaction();
