@@ -30,7 +30,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Realm;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;

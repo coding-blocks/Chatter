@@ -22,6 +22,23 @@ public class MessagesTable {
     private boolean sentStatus;
     private String userAvater;
 
+    public MessagesTable(int id, @NonNull String uId, String text, String timestamp, String roomId, String username, String displayName, boolean unread, boolean sentStatus, String userAvater) {
+        this.id = id;
+        this.uId = uId;
+        this.text = text;
+        this.timestamp = timestamp;
+        this.roomId = roomId;
+        this.username = username;
+        this.displayName = displayName;
+        this.unread = unread;
+        this.sentStatus = sentStatus;
+        this.userAvater = userAvater;
+    }
+
+    @Ignore
+    public MessagesTable() {
+    }
+
     public int getId(){return id;}
     public String getuId(){return uId;}
     public String getRoomId(){return roomId;}
