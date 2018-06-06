@@ -15,6 +15,7 @@ public class MessagesTable extends RealmObject {
     private String displayName;
     private boolean unread;
     private boolean sentStatus;
+    private String userAvater;
 
     public int getId(){return id;}
     public String getuId(){return uId;}
@@ -25,6 +26,7 @@ public class MessagesTable extends RealmObject {
     public String getDisplayName(){return displayName;}
     public boolean getUnread(){return unread;}
     public boolean getSentStatus(){return sentStatus;}
+    public String getUserAvater(){return userAvater;}
 
     public void setId(int id){this.id = id;}
     public void setUId(String uId){this.uId = uId;}
@@ -35,4 +37,5 @@ public class MessagesTable extends RealmObject {
     public void setDisplayName(String displayName){this.displayName = displayName;}
     public void setUnread(boolean unread){this.unread = unread;}
     public void setSentStatus(boolean sentStatus){this.sentStatus = sentStatus;}
+    public void setUserAvater(String userAvater){this.userAvater=userAvater;}
 }
