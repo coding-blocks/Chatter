@@ -199,9 +199,6 @@ public class RoomFragment extends Fragment {
 
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
-        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getContext());
-        mLayoutManager.setReverseLayout(true);
-        recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setAdapter(adapter);
         /* Get messages if network is available
            [we have old ones but checking for updates] */
