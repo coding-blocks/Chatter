@@ -1,11 +1,7 @@
 package com.codingblocks.chatter;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
-
-public class RoomsTable extends RealmObject {
+public class RoomsTable {
     private int id;
-    @PrimaryKey
     private String uId;
     private String roomName;
     private int userCount;

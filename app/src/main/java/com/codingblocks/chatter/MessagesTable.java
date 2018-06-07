@@ -1,12 +1,9 @@
 package com.codingblocks.chatter;
 
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 
-public class MessagesTable extends RealmObject {
+public class MessagesTable{
     private int id;
-    @PrimaryKey
     private String uId;
     private String text;
     private String timestamp;

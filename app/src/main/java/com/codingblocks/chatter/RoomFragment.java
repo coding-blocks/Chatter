@@ -24,14 +24,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
-import io.realm.Sort;
-import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -55,7 +51,7 @@ public class RoomFragment extends Fragment {
     @BindView(R.id.sendButton)
     ImageButton sendButton;
     String roomId;
-    RealmResults<MessagesTable> messages;
+    ArrayList<MessagesTable> messages;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -75,19 +71,14 @@ public class RoomFragment extends Fragment {
             ).show();
         }
 
-        Realm.init(getActivity().getApplicationContext());
-        final Realm realm = Realm.getDefaultInstance();
 
 
-        messages = realm.where(MessagesTable.class)
-                .greaterThan("id", 0)
-                .equalTo("roomId", roomId)
-                .findAllSorted("id", Sort.DESCENDING);
+        messages = new ArrayList<>();
 
-        final RealmResults<RoomsTable> currentRoom =
-                realm.where(RoomsTable.class)
-                        .equalTo("uId", roomId)
-                        .findAll();
+//        final RealmResults<RoomsTable> currentRoom =
+//                realm.where(RoomsTable.class)
+//                        .equalTo("uId", roomId)
+//                        .findAll();
 
         /* Add on change listener for messages so that we can get live results  */
 //        messages.addChangeListener(new RealmChangeListener<RealmResults<MessagesTable>>() {
@@ -119,12 +110,7 @@ public class RoomFragment extends Fragment {
                 if (inputMessage.getText().toString().trim().equals("")) {
                     inputMessage.setHint(R.string.type_in_placeholder);
                 } else {
-                    realm.executeTransaction(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            currentRoom.get(0).setDraftMessage(inputMessage.getText().toString());
-                        }
-                    });
+                    // TODO : Read msg from here
                 }
             }
         });
@@ -135,7 +121,7 @@ public class RoomFragment extends Fragment {
             public void onClick(View view) {
                 if (!inputMessage.getText().toString().equals("Type in here to sent") &&
                         !inputMessage.getText().toString().trim().equals("")) {
-                    sendMessage(currentRoom);
+                    // TODO : send message here
                 }
             }
         });
@@ -152,7 +138,7 @@ public class RoomFragment extends Fragment {
 
     RecyclerView.Adapter adapter;
 
-    public void displayMessages(RealmResults<MessagesTable> messages, String roomId) {
+    public void displayMessages(ArrayList<MessagesTable> messages, String roomId) {
         /* No messages, let's get them first */
         if (messages.size() == 0) {
             getMessages(1, roomId);
@@ -207,11 +193,6 @@ public class RoomFragment extends Fragment {
                         JSONArray JArray = JObject.getJSONArray("messages");
                         int i;
                         for (i = 0; i < JArray.length(); i++) {
-                            // Initialize Realm
-                            Realm.init(getActivity().getApplicationContext());
-                            // Get a Realm instance for this thread
-                            Realm realm = Realm.getDefaultInstance();
-
                             JSONObject dynamicJObject = JArray.getJSONObject(i);
                             String uId = dynamicJObject.getString("id");
                             String text = dynamicJObject.getString("text");
@@ -229,9 +210,9 @@ public class RoomFragment extends Fragment {
 //                                            .findAllSorted("id", Sort.DESCENDING);
 
                             // Get the current max id in the EntityName table
-                            Number maxId = realm.where(MessagesTable.class).max("id");
+//                            Number maxId = realm.where(MessagesTable.class).max("id");
                             // If id is null, set it to 1, else set increment it by 1
-                            int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+//                            int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
 
 //                            if (containedMessage.size() == 1) {
 //                                // Save the id so that if when we delete, we can insert it into the empty slot
@@ -244,7 +225,7 @@ public class RoomFragment extends Fragment {
 //                            }
 
                             MessagesTable message = new MessagesTable();
-                            message.setId(nextId);
+//                            message.setId(nextId);
                             message.setUId(uId);
                             message.setText(text);
                             message.setTimestamp(timestamp);
@@ -256,13 +237,7 @@ public class RoomFragment extends Fragment {
                             message.setUserAvater(avatarUrl);
 
                             // Begin, copy and commit
-                            try {
-                                realm.beginTransaction();
-                                realm.copyToRealmOrUpdate(message);
-                                realm.commitTransaction();
-                            } catch (RealmPrimaryKeyConstraintException pke) {
-                                pke.printStackTrace();
-                            }
+                            messages.add(message);
                         }
                         if (i == 0) {
                             Toast.makeText(
@@ -270,6 +245,13 @@ public class RoomFragment extends Fragment {
                                     "There seems to be no rooms, please try again later",
                                     Toast.LENGTH_SHORT
                             ).show();
+                        }else {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    adapter.notifyDataSetChanged();
+                                }
+                            });
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -291,21 +273,21 @@ public class RoomFragment extends Fragment {
         }
     }
 
-    public void sendMessage(RealmResults<RoomsTable> currentRoom) {
+    public void sendMessage(RoomsTable currentRoom) {
 
         String messageText = inputMessage.getText().toString();
-        // Initialize Realm
-        Realm.init(getActivity().getApplicationContext());
-        // Get a Realm instance for this thread
-        Realm realm = Realm.getDefaultInstance();
-        // Get the current max id in the Messages table
-        Number maxId = realm.where(MessagesTable.class).max("id");
-        // If id is null, set it to 1, else set increment it by 1
-        final int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+//        // Initialize Realm
+//        Realm.init(getActivity().getApplicationContext());
+//        // Get a Realm instance for this thread
+//        Realm realm = Realm.getDefaultInstance();
+//        // Get the current max id in the Messages table
+//        Number maxId = realm.where(MessagesTable.class).max("id");
+//        // If id is null, set it to 1, else set increment it by 1
+//        final int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
         MessagesTable message = new MessagesTable();
-        message.setId(nextId);
+//        message.setId(nextId);
         message.setUId("NotSent"); // This will get updated when we sync
-        message.setRoomId(currentRoom.get(0).getuId());
+        message.setRoomId(currentRoom.getuId());
         message.setText(messageText);
         // This is a  sample timestamp, it will get updated
         message.setTimestamp("sending");
@@ -321,9 +303,8 @@ public class RoomFragment extends Fragment {
         message.setUsername(username);
 
         // Begin, copy and commit
-        realm.beginTransaction();
-        realm.copyToRealm(message);
-        realm.commitTransaction();
+        messages.add(message);
+        adapter.notifyItemInserted(messages.size() - 1);
 
         if (!isNetworkAvailable()) {
             Toast.makeText(getContext(), "Message will be send when you become online", Toast.LENGTH_SHORT).show();
@@ -338,7 +319,7 @@ public class RoomFragment extends Fragment {
                     .build();
             Request request = new Request.Builder()
                     .url("https://api.gitter.im/v1/rooms/"
-                            + currentRoom.get(0).getuId()
+                            + currentRoom.getuId()
                             + "/chatMessages")
                     .addHeader("Accept", "application/json")
                     .addHeader("Authorization:", "Bearer " + accessToken)
@@ -366,27 +347,28 @@ public class RoomFragment extends Fragment {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                // Initialize Realm
-                                Realm.init(getActivity().getApplicationContext());
-                                // Get a Realm instance for this thread
-                                Realm realm = Realm.getDefaultInstance();
-
-                                RealmResults<MessagesTable> sentMessage =
-                                        realm.where(MessagesTable.class)
-                                                .equalTo("id", nextId)
-                                                .findAll();
-                                sentMessage.get(0).setUId(uId);
-                                sentMessage.get(0).setText(text);
-                                sentMessage.get(0).setTimestamp(timestamp);
-                                sentMessage.get(0).setUnread(unread);
-                                sentMessage.get(0).setDisplayName(displayName);
-                                sentMessage.get(0).setUsername(username);
-                                sentMessage.get(0).setSentStatus(true);
-
-                                // Begin, copy and commit
-                                realm.beginTransaction();
-                                realm.copyToRealm(sentMessage);
-                                realm.commitTransaction();
+                                // TODO : Do something when message is sent or if error occurs
+//                                // Initialize Realm
+//                                Realm.init(getActivity().getApplicationContext());
+//                                // Get a Realm instance for this thread
+//                                Realm realm = Realm.getDefaultInstance();
+//
+//                                RealmResults<MessagesTable> sentMessage =
+//                                        realm.where(MessagesTable.class)
+//                                                .equalTo("id", nextId)
+//                                                .findAll();
+//                                sentMessage.get(0).setUId(uId);
+//                                sentMessage.get(0).setText(text);
+//                                sentMessage.get(0).setTimestamp(timestamp);
+//                                sentMessage.get(0).setUnread(unread);
+//                                sentMessage.get(0).setDisplayName(displayName);
+//                                sentMessage.get(0).setUsername(username);
+//                                sentMessage.get(0).setSentStatus(true);
+//
+//                                // Begin, copy and commit
+//                                realm.beginTransaction();
+//                                realm.copyToRealm(sentMessage);
+//                                realm.commitTransaction();
                             }
                         });
                     } catch (IOException e) {
