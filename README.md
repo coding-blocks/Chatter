@@ -6,6 +6,8 @@ Chat app for gitter
 
 Screenshots :
 
+<img src="https://user-images.githubusercontent.com/31950172/41077218-01ecf9a4-6a33-11e8-97ad-9999e8f6a60a.gif" width=300>
+
 <img src="https://user-images.githubusercontent.com/31950172/40463974-eed8a668-5f35-11e8-85e0-1675e4b3e457.png" width=300><img src="https://user-images.githubusercontent.com/31950172/40463975-ef141fc2-5f35-11e8-883c-f3758db0b350.png" width=300>
 
 <img src="https://user-images.githubusercontent.com/31950172/40463976-ef50f79e-5f35-11e8-9ded-d08724292093.png" width=300><img src="https://user-images.githubusercontent.com/31950172/40463977-ef90a52e-5f35-11e8-80ed-910a00414458.png" width=300>
