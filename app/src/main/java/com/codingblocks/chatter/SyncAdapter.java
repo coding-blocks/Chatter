@@ -15,15 +15,15 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
+import com.codingblocks.chatter.room.ChatterDatabase;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
-import io.realm.Realm;
-import io.realm.RealmResults;
-import io.realm.Sort;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -67,12 +67,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         final String accessToken = sharedPreferences.getString("accessToken", "");
         if (!accessToken.equals("")) {
             /* Sync new messages to server part */
-            Realm.init(context);
-            final Realm realm = Realm.getDefaultInstance();
-            final RealmResults<MessagesTable> messagesToBeSent =
-                    realm.where(MessagesTable.class)
-                            .equalTo("sentStatus", false)
-                            .findAll();
+            final ArrayList<MessagesTable> messagesToBeSent = new ArrayList<>(
+                    ChatterDatabase.getInstance(context).messageDao().getUnSentMessages());
             for (int i = 0; i < messagesToBeSent.size(); i++) {
                 final int k = i; // Simple encapsulation hack
                 String messageText = messagesToBeSent.get(i).getText();
@@ -122,15 +118,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 });
             }
-            // Begin, copy and commit
-            realm.beginTransaction();
-            realm.copyToRealm(messagesToBeSent);
-            realm.commitTransaction();
+            // Add to database
+            ChatterDatabase.getInstance(context).messageDao().insertAll(messagesToBeSent);
 
             // Sync messages
-            final RealmResults<RoomsTable> rooms =
-                    realm.where(RoomsTable.class)
-                            .findAll();
+            final ArrayList<RoomsTable> rooms = new ArrayList<>(
+                    ChatterDatabase.getInstance(context).roomDao().getAll());
             // Setup notifications to be displayed asap
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(getContext())
@@ -150,12 +143,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     new NotificationCompat.InboxStyle();
             inboxStyle.setBigContentTitle("Event tracker details:");
             for (int i = 0; i < rooms.size(); i++) {
-                final MessagesTable unreadMessages =
-                        realm.where(MessagesTable.class)
-                                .equalTo("roomId", rooms.get(i).getuId())
-                                .equalTo("unread", true)
-                                .findAllSorted("id")
-                                .first();
+                final MessagesTable unreadMessages = ChatterDatabase.getInstance(context)
+                        .messageDao()
+                        .getFistUnReadByRoomId(rooms.get(i).getuId());
                 final RoomsTable room = rooms.get(i);
                 Request request = new Request.Builder()
                         .url("https://api.gitter.im/v1/rooms/:"
@@ -190,9 +180,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                                 String username = userObject.getString("username");
 
                                 // Get the current max id in the messages table
-                                Number maxId = realm.where(MessagesTable.class).max("id");
+                                Integer maxId = ChatterDatabase.getInstance(context).messageDao().getMaxId();
                                 // If id is null, set it to 1, else set increment it by 1
-                                int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+                                int nextId = (maxId == null) ? 1 : maxId + 1;
 
                                 MessagesTable message = new MessagesTable();
                                 message.setId(nextId);
@@ -204,10 +194,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                                 message.setDisplayName(displayName);
                                 message.setRoomId(room.getuId());
                                 message.setUsername(username);
-                                // Begin, copy and commit
-                                realm.beginTransaction();
-                                realm.copyToRealm(message);
-                                realm.commitTransaction();
+                                // Add to database
+                                ChatterDatabase.getInstance(context).messageDao().insert(message);
                             }
                             // Add sub notifications
                             if(i > 0) {

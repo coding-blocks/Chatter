@@ -12,11 +12,12 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import io.realm.RealmResults;
+import java.util.ArrayList;
+
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> {
 
-    private RealmResults<MessagesTable> messages;
+    private ArrayList<MessagesTable> messages;
     private Context context;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -35,7 +36,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         }
     }
 
-    public MessagesAdapter(RealmResults<MessagesTable> messages, Context context) {
+    public MessagesAdapter(ArrayList<MessagesTable> messages, Context context) {
         this.messages = messages;
         this.context = context;
     }

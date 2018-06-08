@@ -1,13 +1,14 @@
 package com.codingblocks.chatter;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
-
-public class MessagesTable extends RealmObject {
+@Entity
+public class MessagesTable {
     private int id;
-    @PrimaryKey
-    private String uId;
+    @PrimaryKey @NonNull
+    public String uId;
     private String text;
     private String timestamp;
     private String roomId;

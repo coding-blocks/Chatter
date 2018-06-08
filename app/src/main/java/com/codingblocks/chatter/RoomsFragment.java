@@ -1,5 +1,6 @@
 package com.codingblocks.chatter;
 
+import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -9,24 +10,23 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import com.codingblocks.chatter.room.ChatterDatabase;
+import com.codingblocks.chatter.room.RoomDao;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
-import io.realm.Sort;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
@@ -37,6 +37,7 @@ import okhttp3.Response;
 public class RoomsFragment extends Fragment {
 
     private RoomsAdapter adapter;
+    private ArrayList<RoomsTable> rooms;
 
     public RoomsFragment() {
         // Required empty public constructor
@@ -44,38 +45,38 @@ public class RoomsFragment extends Fragment {
 
     private OkHttpClient client = new OkHttpClient();
 
+    private RoomDao roomDao;
+
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
         ButterKnife.bind(this,view);
 
-        Realm.init(getActivity().getApplicationContext());
-        Realm realm = Realm.getDefaultInstance();
-
-        final RealmResults<RoomsTable> rooms = realm
-                .where(RoomsTable.class)
-                .greaterThan("id", 0)
-                .findAll();
-
-        /* Add on change listener for rooms so that we can get live results  */
-        rooms.addChangeListener(new RealmChangeListener<RealmResults<RoomsTable>>() {
+        roomDao = ChatterDatabase.getInstance(getContext()).roomDao();
+        new Thread(new Runnable() {
             @Override
-            public void onChange(RealmResults<RoomsTable> rooms) {
-                // Update the Recycler View
-                adapter.notifyDataSetChanged();
+            public void run() {
+                rooms = new ArrayList<>(roomDao.getAll());
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        init();
+                        displayRooms(rooms);
+                    }
+                });
             }
-        });
+        }).start();
+        return view;
+    }
 
+    public void init(){
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        displayRooms(rooms);
-
-        return view;
     }
 
     public boolean isNetworkAvailable() {
@@ -86,7 +87,7 @@ public class RoomsFragment extends Fragment {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void displayRooms(RealmResults<RoomsTable> rooms){
+    public void displayRooms(ArrayList<RoomsTable> rooms){
         /* No rooms, let's get them first */
         if(rooms.size() == 0){
             /* Internet is needed for sure to get the rooms */
@@ -144,10 +145,6 @@ public class RoomsFragment extends Fragment {
                                 JSONArray JArray = JObject.getJSONArray("rooms");
                                 int i;
                                 for(i = 0; i < JArray.length(); i++){
-                                    // Initialize Realm
-                                    Realm.init(getContext());
-                                    // Get a Realm instance for this thread
-                                    Realm realm = Realm.getDefaultInstance();
 
                                     JSONObject dynamicJObject = JArray.getJSONObject(i);
                                     String githubType = dynamicJObject.getString("githubType");
@@ -162,25 +159,21 @@ public class RoomsFragment extends Fragment {
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
 
-                                    RealmResults<RoomsTable> containedRoom =
-                                            realm.where(RoomsTable.class)
-                                                    .equalTo("uId", uId)
-                                                    .findAllSorted("id", Sort.DESCENDING);
-
                                     // Get the current max id in the EntityName table
-                                    Number maxId = realm.where(RoomsTable.class).max("id");
+                                    Integer maxId = roomDao.getMaxId();
                                     // If id is null, set it to 1, else set increment it by 1
-                                    int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+                                    int nextId = (maxId == null) ? 1 : maxId + 1;
 
-                                    if(containedRoom.size() == 1){
+                                    RoomsTable containedRoom = roomDao.getById(uId);
+                                    if (containedRoom != null) {
                                         // Save the id so that if when we delete, we can insert it into the empty slot
                                         // since we are sorting by id
-                                        nextId = containedRoom.get(0).getId();
+                                        nextId = containedRoom.getId();
                                         // Delete that room, so you can push an update ;)
-                                        realm.beginTransaction();
-                                        containedRoom.deleteFirstFromRealm();
-                                        realm.commitTransaction();
+                                        roomDao.delete(containedRoom);
+                                        rooms.remove(containedRoom);
                                     }
+
                                     RoomsTable room = new RoomsTable();
                                     room.setId(nextId);
                                     room.setuId(uId);
@@ -190,10 +183,9 @@ public class RoomsFragment extends Fragment {
                                     room.setMentions(mentions);
                                     room.setRoomAvatar(url);
 
-                                    // Begin, copy and commit
-                                    realm.beginTransaction();
-                                    realm.copyToRealmOrUpdate(room);
-                                    realm.commitTransaction();
+                                    // Add room
+                                    roomDao.insertAll(room);
+                                    rooms.add(room);
                                 }
                                 if(i == 0){
                                     Toast.makeText(
@@ -201,6 +193,13 @@ public class RoomsFragment extends Fragment {
                                             "There seems to be no rooms, please try again later",
                                             Toast.LENGTH_SHORT
                                     ).show();
+                                }else {
+                                    getActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            adapter.notifyDataSetChanged();
+                                        }
+                                    });
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
