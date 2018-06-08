@@ -1,5 +1,6 @@
 package com.codingblocks.chatter;
 
+import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -13,6 +14,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import com.codingblocks.chatter.room.ChatterDatabase;
+import com.codingblocks.chatter.room.RoomDao;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,23 +45,38 @@ public class RoomsFragment extends Fragment {
 
     private OkHttpClient client = new OkHttpClient();
 
+    private RoomDao roomDao;
+
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
         ButterKnife.bind(this,view);
 
-        rooms = new ArrayList<>();
+        roomDao = ChatterDatabase.getInstance(getContext()).roomDao();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                rooms = new ArrayList<>(roomDao.getAll());
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        init();
+                        displayRooms(rooms);
+                    }
+                });
+            }
+        }).start();
+        return view;
+    }
 
+    public void init(){
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        displayRooms(rooms);
-
-        return view;
     }
 
     public boolean isNetworkAvailable() {
@@ -140,27 +159,23 @@ public class RoomsFragment extends Fragment {
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
 
-//                                    RealmResults<RoomsTable> containedRoom =
-//                                            realm.where(RoomsTable.class)
-//                                                    .equalTo("uId", uId)
-//                                                    .findAllSorted("id", Sort.DESCENDING);
-//
-//                                    // Get the current max id in the EntityName table
-//                                    Number maxId = realm.where(RoomsTable.class).max("id");
-//                                    // If id is null, set it to 1, else set increment it by 1
-//                                    int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
-//
-//                                    if(containedRoom.size() == 1){
-//                                        // Save the id so that if when we delete, we can insert it into the empty slot
-//                                        // since we are sorting by id
-//                                        nextId = containedRoom.get(0).getId();
-//                                        // Delete that room, so you can push an update ;)
-//                                        realm.beginTransaction();
-//                                        containedRoom.deleteFirstFromRealm();
-//                                        realm.commitTransaction();
-//                                    }
+                                    // Get the current max id in the EntityName table
+                                    Integer maxId = roomDao.getMaxId();
+                                    // If id is null, set it to 1, else set increment it by 1
+                                    int nextId = (maxId == null) ? 1 : maxId + 1;
+
+                                    RoomsTable containedRoom = roomDao.getById(uId);
+                                    if (containedRoom != null) {
+                                        // Save the id so that if when we delete, we can insert it into the empty slot
+                                        // since we are sorting by id
+                                        nextId = containedRoom.getId();
+                                        // Delete that room, so you can push an update ;)
+                                        roomDao.delete(containedRoom);
+                                        rooms.remove(containedRoom);
+                                    }
+
                                     RoomsTable room = new RoomsTable();
-//                                    room.setId(nextId);
+                                    room.setId(nextId);
                                     room.setuId(uId);
                                     room.setRoomName(name);
                                     room.setUserCount(userCount);
@@ -169,6 +184,7 @@ public class RoomsFragment extends Fragment {
                                     room.setRoomAvatar(url);
 
                                     // Add room
+                                    roomDao.insertAll(room);
                                     rooms.add(room);
                                 }
                                 if(i == 0){

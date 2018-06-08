@@ -1,10 +1,14 @@
 package com.codingblocks.chatter;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
-
-public class MessagesTable{
+@Entity
+public class MessagesTable {
     private int id;
-    private String uId;
+    @PrimaryKey @NonNull
+    public String uId;
     private String text;
     private String timestamp;
     private String roomId;

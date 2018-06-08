@@ -1,8 +1,14 @@
 package com.codingblocks.chatter;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
+
+@Entity
 public class RoomsTable {
     private int id;
-    private String uId;
+    @PrimaryKey @NonNull
+    public String uId;
     private String roomName;
     private int userCount;
     private int unreadItems;
