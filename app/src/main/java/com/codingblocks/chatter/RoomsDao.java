@@ -14,7 +14,7 @@ import java.util.List;
 public interface RoomsDao {
 
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     void addRooms(RoomsTable roomsTable);
 
 
@@ -23,6 +23,9 @@ public interface RoomsDao {
 
     @Query("SELECT * FROM rooms WHERE uId = :uId ORDER BY id DESC")
     List<RoomsTable> getRoomsWithuId(String uId);
+
+    @Query("SELECT * FROM rooms WHERE uId = :uId ORDER BY id DESC")
+    RoomsTable getRoomWithuId(String uId);
 
 
     //Get the current max id

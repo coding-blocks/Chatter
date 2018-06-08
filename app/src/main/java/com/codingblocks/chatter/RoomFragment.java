@@ -8,6 +8,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -90,19 +91,6 @@ public class RoomFragment extends Fragment {
         messagesDatabase = MessagesDatabase.getInstance(getContext());
         messagesDao = messagesDatabase.messagesDao();
         messages = new ArrayList<>();
-        new AsyncTask<Void, Void, List<MessagesTable>>() {
-
-            @Override
-            protected List<MessagesTable> doInBackground(Void... voids) {
-                return messagesDao.getRoomMessages(roomId);
-            }
-
-            @Override
-            protected void onPostExecute(List<MessagesTable> rooms) {
-                messages.clear();
-                messages.addAll(rooms);
-            }
-        }.execute();
 
 
         roomdb = RoomsDatabase.getInstance(getContext());
@@ -148,21 +136,14 @@ public class RoomFragment extends Fragment {
                 }
             }
         });
-//        inputMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-//            @Override
-//            public void onFocusChange(View view, boolean b) {
-//                if (inputMessage.getText().toString().trim().equals("")) {
-//                    inputMessage.setHint(R.string.type_in_placeholder);
-//                } else {
-//                    realm.executeTransaction(new Realm.Transaction() {
-//                        @Override
-//                        public void execute(Realm realm) {
-//                            currentRoom.get(0).setDraftMessage(inputMessage.getText().toString());
-//                        }
-//                    });
-//                }
-//            }
-//        });
+        inputMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if (inputMessage.getText().toString().trim().equals("")) {
+                    inputMessage.setHint(R.string.type_in_placeholder);
+                }
+            }
+        });
 
         /* Sent message button */
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -177,6 +158,7 @@ public class RoomFragment extends Fragment {
         return view;
     }
 
+
     public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) getActivity()
@@ -187,19 +169,42 @@ public class RoomFragment extends Fragment {
 
     RecyclerView.Adapter adapter;
 
-    public void displayMessages(List<MessagesTable> messages, String roomId) {
+    @SuppressLint("StaticFieldLeak")
+    public void displayMessages(final List<MessagesTable> messages, final String roomId) {
         /* No messages, let's get them first */
         if (messages.size() == 0) {
             getMessages(1, roomId);
         }
 
-        adapter = new MessagesAdapter(messages, getActivity().getApplicationContext());
-        LinearLayoutManager layoutManager =
-                new LinearLayoutManager(getActivity().getApplicationContext());
+        getActivity().runOnUiThread(new Runnable() {
 
-        layoutManager.setStackFromEnd(true);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(adapter);
+            @Override
+            public void run() {
+
+                // Stuff that updates the UI
+                adapter = new MessagesAdapter(messages, getActivity().getApplicationContext());
+                LinearLayoutManager layoutManager =
+                        new LinearLayoutManager(getActivity().getApplicationContext());
+
+                layoutManager.setStackFromEnd(true);
+                recyclerView.setLayoutManager(layoutManager);
+                recyclerView.setAdapter(adapter);
+                new AsyncTask<Void, Void, List<MessagesTable>>() {
+
+                    @Override
+                    protected List<MessagesTable> doInBackground(Void... voids) {
+                        return messagesDao.getRoomMessages(roomId);
+                    }
+
+                    @Override
+                    protected void onPostExecute(List<MessagesTable> rooms) {
+                        messages.clear();
+                        messages.addAll(rooms);
+                    }
+                }.execute();
+            }
+        });
+
         /* Get messages if network is available
            [we have old ones but checking for updates] */
 //        getMessages(0, roomId);
@@ -267,19 +272,20 @@ public class RoomFragment extends Fragment {
 //                                            .findAllSorted("id", Sort.DESCENDING);
 
                             // Get the current max id in the EntityName table
-                            int maxId = messagesDao.getMax();
-                            // If id is null, set it to 1, else set increment it by 1
-                            int nextId = (maxId == 0) ? 1 : maxId + 1;
+                            MessagesTable containedMessage = messagesDao.getById(uId);
 
-//                            if (containedMessage.size() == 1) {
-//                                // Save the id so that if when we delete, we can insert it into the empty slot
-//                                // since we are sorting by id
-//                                nextId = containedMessage.get(0).getId();
-//                                // Delete that message, so you can push an update ;)
-//                                realm.beginTransaction();
-//                                containedMessage.deleteFirstFromRealm();
-//                                realm.commitTransaction();
-//                            }
+                            Integer maxId = messagesDao.getMax();
+                            // If id is null, set it to 1, else set increment it by 1
+                            int nextId = (maxId == null) ? 1 : maxId + 1;
+
+                            if (containedMessage != null) {
+                                // Save the id so that if when we delete, we can insert it into the empty slot
+                                // since we are sorting by id
+                                nextId = containedMessage.getId();
+                                // Delete that message, so you can push an update ;)
+                                messagesDao.delete(containedMessage);
+                                messages.remove(containedMessage);
+                            }
 
                             final MessagesTable message = new MessagesTable();
                             message.setId(nextId);
@@ -321,11 +327,15 @@ public class RoomFragment extends Fragment {
                             }.execute();
                         }
                         if (i == 0) {
+                            Looper.prepare();
+
                             Toast.makeText(
                                     getActivity(),
                                     "There seems to be no rooms, please try again later",
                                     Toast.LENGTH_SHORT
                             ).show();
+                            Looper.loop();
+
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -357,12 +367,31 @@ public class RoomFragment extends Fragment {
 //        // Get a Realm instance for this thread
 //        Realm realm = Realm.getDefaultInstance();
         // Get the current max id in the Messages table
-        int maxId = messagesDao.getMax();
+        final int[] maxId = new int[1];
+        final int[] nextId = new int[1];
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try {
+                    maxId[0] = messagesDao.getMax();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                nextId[0] = (maxId[0] == 0) ? 1 : maxId[0] + 1;
+            }
+        }.execute();
         // If id is null, set it to 1, else set increment it by 1
-        final int nextId = (maxId == 0) ? 1 : maxId + 1;
+
 
         final MessagesTable message = new MessagesTable();
-        message.setId(nextId);
+        message.setId(nextId[0]);
         message.setUId("NotSent"); // This will get updated when we sync
         message.setRoomId(currentRoom.get(0).getuId());
         message.setText(messageText);
@@ -453,7 +482,7 @@ public class RoomFragment extends Fragment {
 
                                     @Override
                                     protected List<MessagesTable> doInBackground(Void... voids) {
-                                        return messagesDao.getSentMessage(nextId);
+                                        return messagesDao.getSentMessage(nextId[0]);
                                     }
 
                                     @Override
@@ -502,5 +531,6 @@ public class RoomFragment extends Fragment {
         }
 
         inputMessage.setHint(R.string.type_in_placeholder);
+
     }
 }

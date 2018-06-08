@@ -22,16 +22,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Realm;
 
-import io.realm.RealmResults;
-import io.realm.Sort;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
@@ -67,19 +63,6 @@ public class RoomsFragment extends Fragment {
 
         db = RoomsDatabase.getInstance(getContext());
         dao = db.roomsDao();
-        new AsyncTask<Void, Void, List<RoomsTable>>() {
-
-            @Override
-            protected List<RoomsTable> doInBackground(Void... voids) {
-                return dao.getAllRooms();
-            }
-
-            @Override
-            protected void onPostExecute(List<RoomsTable> notes) {
-                mRooms.addAll(notes);
-                adapter.notifyDataSetChanged();
-            }
-        }.execute();
 
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getContext());
@@ -97,15 +80,43 @@ public class RoomsFragment extends Fragment {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+    @SuppressLint("StaticFieldLeak")
     public void displayRooms(List<RoomsTable> rooms) {
         /* No rooms, let's get them first */
         if (rooms.size() == 0) {
             /* Internet is needed for sure to get the rooms */
             getRooms(1);
+
         }
+        new AsyncTask<Void, Void, List<RoomsTable>>() {
+
+            @Override
+            protected List<RoomsTable> doInBackground(Void... voids) {
+                return dao.getAllRooms();
+            }
+
+            @Override
+            protected void onPostExecute(List<RoomsTable> notes) {
+                mRooms.clear();
+                mRooms.addAll(notes);
+            }
+        }.execute();
 
         adapter = new RoomsAdapter(rooms, getContext());
         recyclerView.setAdapter(adapter);
+        new AsyncTask<Void, Void, List<RoomsTable>>() {
+
+            @Override
+            protected List<RoomsTable> doInBackground(Void... voids) {
+                return dao.getAllRooms();
+            }
+
+            @Override
+            protected void onPostExecute(List<RoomsTable> notes) {
+                mRooms.clear();
+                mRooms.addAll(notes);
+            }
+        }.execute();
 
         /* Get rooms if network is available
            [we have old ones but checking for updates] */
@@ -169,31 +180,27 @@ public class RoomsFragment extends Fragment {
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
-                                    Log.i(TAG, "run: "+dynamicJObject.toString());
+                                    Log.i(TAG, "run: " + dynamicJObject.toString());
 
 //
-//                                    final List<RoomsTable> containedRoom = new ArrayList<>();
-//                                    new AsyncTask<Void, Void, List<RoomsTable>>() {
-//
-//                                        @Override
-//                                        protected List<RoomsTable> doInBackground(Void... voids) {
-//
-//                                            return dao.getRoomsWithuId(uId);
-//                                        }
-//
-//                                        @Override
-//                                        protected void onPostExecute(List<RoomsTable> rooms) {
-//                                            containedRoom.clear();
-//                                            containedRoom.addAll(rooms);
-//                                            Log.i(TAG, "onPostExecute: size of conatined room"+containedRoom.size()+"  "+containedRoom.get(0).getuId()+containedRoom.get(0).getRoomName()+"  "+containedRoom.get(0).getId());
-//                                        }
-//                                    }.execute();
+
+
 //
 //                                    // Get the current max id in the EntityName table
                                     int maxId = dao.getMax();
-                                    Log.i(TAG, "onPostExecute: dao max"+dao.getMax());
+                                    Log.i(TAG, "onPostExecute: dao max" + dao.getMax());
                                     // If id is null, set it to 1, else set increment it by 1
                                     int nextId = (maxId == 0) ? 1 : maxId + 1;
+
+                                    RoomsTable containedRoom = dao.getRoomWithuId(uId);
+                                    if (containedRoom != null) {
+                                        // Save the id so that if when we delete, we can insert it into the empty slot
+                                        // since we are sorting by id
+                                        nextId = containedRoom.getId();
+                                        // Delete that room, so you can push an update ;)
+                                        dao.delete(containedRoom);
+                                        mRooms.remove(containedRoom);
+                                    }
 
                                     final RoomsTable room = new RoomsTable();
                                     room.setId(nextId);
@@ -224,6 +231,8 @@ public class RoomsFragment extends Fragment {
                                         @Override
                                         protected void onPostExecute(Void aVoid) {
                                             super.onPostExecute(aVoid);
+                                            adapter.notifyDataSetChanged();
+
                                         }
                                     }.execute();
                                 }
@@ -237,6 +246,22 @@ public class RoomsFragment extends Fragment {
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
+                            }finally {
+                                if(mRooms.size()== 0){
+                                    new AsyncTask<Void, Void, List<RoomsTable>>() {
+
+                                        @Override
+                                        protected List<RoomsTable> doInBackground(Void... voids) {
+                                            return dao.getAllRooms();
+                                        }
+
+                                        @Override
+                                        protected void onPostExecute(List<RoomsTable> notes) {
+                                            mRooms.clear();
+                                            mRooms.addAll(notes);
+                                        }
+                                    }.execute();
+                                }
                             }
                         }
                     });
