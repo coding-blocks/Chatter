@@ -7,6 +7,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -45,6 +46,7 @@ public class RoomsFragment extends Fragment {
     private OkHttpClient client = new OkHttpClient();
 
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
+    @BindView(R.id.refreshlayout) SwipeRefreshLayout refreshLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -74,6 +76,15 @@ public class RoomsFragment extends Fragment {
                 new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         displayRooms(rooms);
+
+        //this is swipe to refresh the Rooms fragment layout
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                displayRooms(rooms);
+                refreshLayout.setRefreshing(false);
+            }
+        });
 
         return view;
     }
