@@ -21,7 +21,7 @@ public class MessagesTable {
     private boolean unread;
     private boolean sentStatus;
     private String userAvater;
-
+  
     public MessagesTable(int id, @NonNull String uId, String text, String timestamp, String roomId, String username, String displayName, boolean unread, boolean sentStatus, String userAvater) {
         this.id = id;
         this.uId = uId;
@@ -60,4 +60,5 @@ public class MessagesTable {
     public void setUnread(boolean unread){this.unread = unread;}
     public void setSentStatus(boolean sentStatus){this.sentStatus = sentStatus;}
     public void setUserAvater(String userAvater){this.userAvater=userAvater;}
+
 }
