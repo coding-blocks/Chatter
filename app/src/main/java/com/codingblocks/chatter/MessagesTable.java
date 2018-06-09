@@ -1,13 +1,18 @@
 package com.codingblocks.chatter;
 
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
-public class MessagesTable extends RealmObject {
+
+@Entity(tableName = "messages")
+public class MessagesTable {
     private int id;
     @PrimaryKey
-    private String uId;
+    @NonNull
+    public String uId;
     private String text;
     private String timestamp;
     private String roomId;
@@ -16,6 +21,23 @@ public class MessagesTable extends RealmObject {
     private boolean unread;
     private boolean sentStatus;
     private String userAvater;
+  
+    public MessagesTable(int id, @NonNull String uId, String text, String timestamp, String roomId, String username, String displayName, boolean unread, boolean sentStatus, String userAvater) {
+        this.id = id;
+        this.uId = uId;
+        this.text = text;
+        this.timestamp = timestamp;
+        this.roomId = roomId;
+        this.username = username;
+        this.displayName = displayName;
+        this.unread = unread;
+        this.sentStatus = sentStatus;
+        this.userAvater = userAvater;
+    }
+
+    @Ignore
+    public MessagesTable() {
+    }
 
     public int getId(){return id;}
     public String getuId(){return uId;}
@@ -38,4 +60,5 @@ public class MessagesTable extends RealmObject {
     public void setUnread(boolean unread){this.unread = unread;}
     public void setSentStatus(boolean sentStatus){this.sentStatus = sentStatus;}
     public void setUserAvater(String userAvater){this.userAvater=userAvater;}
+
 }

@@ -1,6 +1,7 @@
 package com.codingblocks.chatter;
 
 import android.accounts.Account;
+import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
@@ -10,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
@@ -20,6 +22,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -37,6 +41,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private ContentResolver mContentResolver;
     private SharedPreferences sharedPreferences;
     Context context;
+    RoomsDatabase db;
+    RoomsDao dao;
+    MessagesDatabase messagesDatabase;
+    MessagesDao messagesDao;
 
     private OkHttpClient client = new OkHttpClient();
 
@@ -57,6 +65,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         sharedPreferences = context.getSharedPreferences("UserPreferences", 0);
     }
 
+    @SuppressLint("StaticFieldLeak")
     @Override
     public void onPerformSync(
             Account account,
@@ -67,12 +76,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         final String accessToken = sharedPreferences.getString("accessToken", "");
         if (!accessToken.equals("")) {
             /* Sync new messages to server part */
-            Realm.init(context);
-            final Realm realm = Realm.getDefaultInstance();
-            final RealmResults<MessagesTable> messagesToBeSent =
-                    realm.where(MessagesTable.class)
-                            .equalTo("sentStatus", false)
-                            .findAll();
+//            Realm.init(context);
+//            final Realm realm = Realm.getDefaultInstance();
+            final List<MessagesTable> messagesToBeSent = messagesDao.getPendingMessages();
+//                    realm.where(MessagesTable.class)
+//                            .equalTo("sentStatus", false)
+//                            .findAll();
+
             for (int i = 0; i < messagesToBeSent.size(); i++) {
                 final int k = i; // Simple encapsulation hack
                 String messageText = messagesToBeSent.get(i).getText();
@@ -123,14 +133,36 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 });
             }
             // Begin, copy and commit
-            realm.beginTransaction();
-            realm.copyToRealm(messagesToBeSent);
-            realm.commitTransaction();
+            new AsyncTask<Void, Void, Void>() {
+
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    messagesDao.addMultipleMessages(messagesToBeSent);
+                    return null;
+                }
+            }.execute();
 
             // Sync messages
-            final RealmResults<RoomsTable> rooms =
-                    realm.where(RoomsTable.class)
-                            .findAll();
+            db = RoomsDatabase.getInstance(context);
+            dao = db.roomsDao();
+            final List<RoomsTable> rooms = new ArrayList<>();
+
+            new AsyncTask<Void, Void, List<RoomsTable>>() {
+
+                @Override
+                protected List<RoomsTable> doInBackground(Void... voids) {
+                    return dao.getAllRooms();
+                }
+
+                @Override
+                protected void onPostExecute(List<RoomsTable> notes) {
+                    rooms.clear();
+                    rooms.addAll(notes);
+                }
+            }.execute();
+//            final RealmResults<RoomsTable> rooms =
+//                    realm.where(RoomsTable.class)
+//                            .findAll();
             // Setup notifications to be displayed asap
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(getContext())
@@ -150,12 +182,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     new NotificationCompat.InboxStyle();
             inboxStyle.setBigContentTitle("Event tracker details:");
             for (int i = 0; i < rooms.size(); i++) {
-                final MessagesTable unreadMessages =
-                        realm.where(MessagesTable.class)
-                                .equalTo("roomId", rooms.get(i).getuId())
-                                .equalTo("unread", true)
-                                .findAllSorted("id")
-                                .first();
+                final MessagesTable unreadMessages = messagesDao.getUnreadMessages(rooms.get(i).getuId());
+//                        realm.where(MessagesTable.class)
+//                                .equalTo("roomId", rooms.get(i).getuId())
+//                                .equalTo("unread", true)
+//                                .findAllSorted("id")
+//                                .first();
                 final RoomsTable room = rooms.get(i);
                 Request request = new Request.Builder()
                         .url("https://api.gitter.im/v1/rooms/:"
@@ -190,11 +222,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                                 String username = userObject.getString("username");
 
                                 // Get the current max id in the messages table
-                                Number maxId = realm.where(MessagesTable.class).max("id");
+                                int maxId = messagesDao.getMax();
                                 // If id is null, set it to 1, else set increment it by 1
-                                int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+                                final int nextId = (maxId == 0) ? 1 : maxId + 1;
 
-                                MessagesTable message = new MessagesTable();
+                                final MessagesTable message = new MessagesTable();
                                 message.setId(nextId);
                                 message.setUId(uId);
                                 message.setText(text);
@@ -205,13 +237,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                                 message.setRoomId(room.getuId());
                                 message.setUsername(username);
                                 // Begin, copy and commit
-                                realm.beginTransaction();
-                                realm.copyToRealm(message);
-                                realm.commitTransaction();
+                                new AsyncTask<Void, Void, Void>() {
+
+                                    @Override
+                                    protected Void doInBackground(Void... voids) {
+                                        messagesDao.addMessages(message);
+                                        return null;
+                                    }
+                                }.execute();
                             }
                             // Add sub notifications
-                            if(i > 0) {
-                                if(i == 1) {
+                            if (i > 0) {
+                                if (i == 1) {
                                     inboxStyle.addLine("1 unread message in " + room.getRoomName());
                                 } else {
                                     inboxStyle.addLine(i + " unread message in " + room.getRoomName());

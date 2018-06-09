@@ -10,11 +10,12 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import io.realm.RealmResults;
+import java.util.List;
+
 
 public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder> {
 
-    private RealmResults<RoomsTable> rooms;
+    private List<RoomsTable> rooms;
     private Context context;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -30,7 +31,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
         }
     }
 
-    public RoomsAdapter(RealmResults<RoomsTable> rooms, Context context) {
+    public RoomsAdapter(List<RoomsTable> rooms, Context context) {
         this.rooms = rooms;
         this.context = context;
     }
