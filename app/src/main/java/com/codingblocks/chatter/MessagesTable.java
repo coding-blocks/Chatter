@@ -60,4 +60,5 @@ public class MessagesTable {
     public void setUnread(boolean unread){this.unread = unread;}
     public void setSentStatus(boolean sentStatus){this.sentStatus = sentStatus;}
     public void setUserAvater(String userAvater){this.userAvater=userAvater;}
+
 }

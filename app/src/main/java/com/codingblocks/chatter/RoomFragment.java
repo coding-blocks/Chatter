@@ -1,3 +1,4 @@
+
 package com.codingblocks.chatter;
 
 
@@ -79,15 +80,6 @@ public class RoomFragment extends Fragment {
             ).show();
         }
 
-//        Realm.init(getActivity().getApplicationContext());
-//        final Realm realm = Realm.getDefaultInstance();
-
-
-//        messages = realm.where(MessagesTable.class)
-//                .greaterThan("id", 0)
-//                .equalTo("roomId",roomId)
-//                .findAllSorted("id", Sort.DESCENDING);
-
         messagesDatabase = MessagesDatabase.getInstance(getContext());
         messagesDao = messagesDatabase.messagesDao();
         messages = new ArrayList<>();
@@ -112,20 +104,7 @@ public class RoomFragment extends Fragment {
         }.execute();
 
 
-        /* Add on change listener for messages so that we can get live results  */
-//        messages.addChangeListener(new RealmChangeListener<RealmResults<MessagesTable>>() {
-//            @Override
-//            public void onChange(RealmResults<MessagesTable> rooms) {
-//                // Update the Recycler View
-//                displayMessages(messages, roomId);
-//            }
-//        });
-
         displayMessages(messages, roomId);
-
-//        if (!currentRoom.get(0).getDraftMessage().equals("")) {
-//            inputMessage.setText(currentRoom.get(0).getDraftMessage());
-//        }
 
         /* Resetting the placeholder text and setting it back if its empty */
         inputMessage.setOnClickListener(new View.OnClickListener() {
@@ -250,10 +229,6 @@ public class RoomFragment extends Fragment {
                         JSONArray JArray = JObject.getJSONArray("messages");
                         int i;
                         for (i = 0; i < JArray.length(); i++) {
-                            // Initialize Realm
-//                            Realm.init(getActivity().getApplicationContext());
-                            // Get a Realm instance for this thread
-//                            Realm realm = Realm.getDefaultInstance();
 
                             JSONObject dynamicJObject = JArray.getJSONObject(i);
                             String uId = dynamicJObject.getString("id");
@@ -264,14 +239,7 @@ public class RoomFragment extends Fragment {
                             String displayName = userObject.getString("displayName");
                             String username = userObject.getString("username");
                             String avatarUrl = userObject.getString("avatarUrlMedium");
-//                            Log.e("TAG JSON " , "run: " + i );
-//                             If message exists already
-//                            final RealmResults<MessagesTable> containedMessage =
-//                                    realm.where(MessagesTable.class)
-//                                            .equalTo("uId", uId)
-//                                            .findAllSorted("id", Sort.DESCENDING);
 
-                            // Get the current max id in the EntityName table
                             MessagesTable containedMessage = messagesDao.getById(uId);
 
                             Integer maxId = messagesDao.getMax();
@@ -299,14 +267,6 @@ public class RoomFragment extends Fragment {
                             message.setUsername(username);
                             message.setUserAvater(avatarUrl);
 
-                            // Begin, copy and commit
-//                            try {
-//                                realm.beginTransaction();
-//                                realm.copyToRealmOrUpdate(message);
-//                                realm.commitTransaction();
-//                            } catch (RealmPrimaryKeyConstraintException pke) {
-//                                pke.printStackTrace();
-//                            }
                             new AsyncTask<Void, Void, Void>() {
 
                                 @Override
@@ -362,11 +322,6 @@ public class RoomFragment extends Fragment {
     public void sendMessage(List<RoomsTable> currentRoom) {
 
         String messageText = inputMessage.getText().toString();
-        // Initialize Realm
-//        Realm.init(getActivity().getApplicationContext());
-//        // Get a Realm instance for this thread
-//        Realm realm = Realm.getDefaultInstance();
-        // Get the current max id in the Messages table
         final int[] maxId = new int[1];
         final int[] nextId = new int[1];
         new AsyncTask<Void, Void, Void>() {
@@ -408,10 +363,6 @@ public class RoomFragment extends Fragment {
                 .getString("username", "");
         message.setUsername(username);
 
-        // Begin, copy and commit
-//        realm.beginTransaction();
-//        realm.copyToRealm(message);
-//        realm.commitTransaction();
 
         new AsyncTask<Void, Void, Void>() {
 
@@ -470,14 +421,7 @@ public class RoomFragment extends Fragment {
                             @Override
                             public void run() {
                                 // Initialize Realm
-//                                Realm.init(getActivity().getApplicationContext());
-//                                // Get a Realm instance for this thread
-//                                Realm realm = Realm.getDefaultInstance();
-
                                 final List<MessagesTable> sentMessage = new ArrayList<>();
-//                                        realm.where(MessagesTable.class)
-//                                                .equalTo("id", nextId)
-//                                                .findAll();
                                 new AsyncTask<Void, Void, List<MessagesTable>>() {
 
                                     @Override
@@ -500,10 +444,6 @@ public class RoomFragment extends Fragment {
                                 sentMessage.get(0).setUsername(username);
                                 sentMessage.get(0).setSentStatus(true);
 
-                                // Begin, copy and commit
-//                                realm.beginTransaction();
-//                                realm.copyToRealm(sentMessage);
-//                                realm.commitTransaction();
                                 new AsyncTask<Void, Void, Void>() {
 
                                     @Override
