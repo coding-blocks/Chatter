@@ -10,9 +10,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/Chatter_icon"
+        android:icon="@drawable/chatter_icon"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/Chatter_icon"
+        android:roundIcon="@drawable/chatter_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
