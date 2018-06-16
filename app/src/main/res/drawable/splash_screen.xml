@@ -4,7 +4,7 @@
         <color android:color="@android:color/white" />
     </item>
     <item>
-        <bitmap android:src="@drawable/ic_launcher_round"
+        <bitmap android:src="@drawable/ic_launcher2"
             android:gravity="center"
             android:tileMode="disabled"/>
 
