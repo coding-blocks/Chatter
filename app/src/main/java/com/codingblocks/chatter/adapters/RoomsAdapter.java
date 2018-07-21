@@ -64,11 +64,12 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
             myViewHolder.roomUnread.setText(Integer.toString(room.getUnreadItems()));
         }
         final String roomId = room.getuId();
+        final String roomName = room.getRoomName();
         myViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ((DashboardActivity) myViewHolder.itemView.getContext())
-                        .openRoom(roomId);
+                        .openRoom(roomId,roomName);
             }
         });
     }
