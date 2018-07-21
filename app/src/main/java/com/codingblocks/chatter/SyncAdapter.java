@@ -166,7 +166,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             // Setup notifications to be displayed asap
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(getContext())
-                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setSmallIcon(R.mipmap.ic_launcher2)
                             .setContentTitle("There are new messages")
                             .setContentText("Click here to expand");
             final int NOTIFICATION_ID = 1234567890;
