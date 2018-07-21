@@ -1,4 +1,4 @@
-package com.codingblocks.chatter;
+package com.codingblocks.chatter.db;
 
 
 import android.arch.persistence.room.Entity;

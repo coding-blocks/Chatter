@@ -12,6 +12,9 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+
+import com.codingblocks.chatter.fragments.RoomsFragment;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

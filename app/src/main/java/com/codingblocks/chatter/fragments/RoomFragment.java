@@ -1,4 +1,4 @@
-package com.codingblocks.chatter;
+package com.codingblocks.chatter.fragments;
 
 
 import android.annotation.SuppressLint;
@@ -20,6 +20,17 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import com.codingblocks.chatter.MessagesDatabase;
+import com.codingblocks.chatter.NoNetworkActivity;
+import com.codingblocks.chatter.R;
+import com.codingblocks.chatter.RoomsDatabase;
+import com.codingblocks.chatter.SplashActivity;
+import com.codingblocks.chatter.adapters.MessagesAdapter;
+import com.codingblocks.chatter.db.MessagesTable;
+import com.codingblocks.chatter.db.RoomsTable;
+import com.codingblocks.chatter.models.MessagesDao;
+import com.codingblocks.chatter.models.RoomsDao;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,11 +59,11 @@ public class RoomFragment extends Fragment {
     private OkHttpClient client = new OkHttpClient();
 
     @BindView(R.id.recycler_view)
-    RecyclerView recyclerView;
+    public RecyclerView recyclerView;
     @BindView(R.id.inputMessage)
-    EditText inputMessage;
+    public EditText inputMessage;
     @BindView(R.id.sendButton)
-    ImageButton sendButton;
+    public ImageButton sendButton;
     String roomId;
     List<MessagesTable> messages;
     RoomsDatabase roomdb;

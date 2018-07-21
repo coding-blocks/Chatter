@@ -1,4 +1,4 @@
-package com.codingblocks.chatter;
+package com.codingblocks.chatter.adapters;
 
 import android.accounts.Account;
 import android.annotation.SuppressLint;
@@ -17,6 +17,15 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
+import com.codingblocks.chatter.DashboardActivity;
+import com.codingblocks.chatter.models.MessagesDao;
+import com.codingblocks.chatter.MessagesDatabase;
+import com.codingblocks.chatter.db.MessagesTable;
+import com.codingblocks.chatter.R;
+import com.codingblocks.chatter.models.RoomsDao;
+import com.codingblocks.chatter.RoomsDatabase;
+import com.codingblocks.chatter.db.RoomsTable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,9 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.realm.Realm;
-import io.realm.RealmResults;
-import io.realm.Sort;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;

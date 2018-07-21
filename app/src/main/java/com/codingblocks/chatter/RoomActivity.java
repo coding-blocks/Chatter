@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.codingblocks.chatter.fragments.RoomFragment;
+
 public class RoomActivity extends AppCompatActivity {
 
     @Override

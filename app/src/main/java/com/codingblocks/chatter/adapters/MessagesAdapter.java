@@ -1,4 +1,4 @@
-package com.codingblocks.chatter;
+package com.codingblocks.chatter.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -10,9 +10,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import java.util.List;
-import com.squareup.picasso.Picasso;
 
-import io.realm.RealmResults;
+import com.codingblocks.chatter.db.MessagesTable;
+import com.codingblocks.chatter.R;
+import com.squareup.picasso.Picasso;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> {
 

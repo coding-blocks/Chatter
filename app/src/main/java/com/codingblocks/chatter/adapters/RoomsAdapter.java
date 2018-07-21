@@ -1,4 +1,4 @@
-package com.codingblocks.chatter;
+package com.codingblocks.chatter.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.codingblocks.chatter.DashboardActivity;
+import com.codingblocks.chatter.R;
+import com.codingblocks.chatter.db.RoomsTable;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;

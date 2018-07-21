@@ -5,6 +5,9 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
+import com.codingblocks.chatter.db.MessagesTable;
+import com.codingblocks.chatter.models.MessagesDao;
+
 @Database(entities = {MessagesTable.class}, version = 1, exportSchema = false)
 public abstract class MessagesDatabase extends RoomDatabase {
     private static MessagesDatabase INSTANCE;
@@ -25,5 +28,5 @@ public abstract class MessagesDatabase extends RoomDatabase {
 
     public static final String DB_NAME = "messages_db";
 
-    abstract MessagesDao messagesDao();
+    public abstract MessagesDao messagesDao();
 }

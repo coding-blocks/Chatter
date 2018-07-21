@@ -6,6 +6,9 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
+import com.codingblocks.chatter.db.RoomsTable;
+import com.codingblocks.chatter.models.RoomsDao;
+
 @Database(entities = {RoomsTable.class},version = 1,exportSchema = false)
 public abstract class RoomsDatabase extends RoomDatabase {
     private static RoomsDatabase INSTANCE;
@@ -26,5 +29,5 @@ public abstract class RoomsDatabase extends RoomDatabase {
 
     public static final String DB_NAME = "rooms_db";
 
-    abstract RoomsDao roomsDao();
+    abstract public RoomsDao roomsDao();
 }
