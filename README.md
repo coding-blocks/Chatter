@@ -1,6 +1,11 @@
 # Chatter
 Chat app for gitter
 
+<a href="https://play.google.com/store/apps/details?id=com.codingblocks.chatter">
+  <img alt="Android app on Google Play"
+       src="https://developer.android.com/images/brand/en_app_rgb_wo_45.png" />
+</a>
+
 [![CircleCI](https://img.shields.io/circleci/project/github/coding-blocks/Chatter.svg)](https://circleci.com/gh/coding-blocks/Chatter)
 [![Build Status](https://travis-ci.org/coding-blocks/Chatter.svg?branch=development)](https://travis-ci.org/coding-blocks/Chatter)
 
