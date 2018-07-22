@@ -78,7 +78,11 @@ public class RoomFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
         ButterKnife.bind(this, view);
         Bundle bundle = this.getArguments();
-        getActivity().setTitle(bundle.getString("RoomName"));
+        if (bundle.getString("RoomName") != null)
+            getActivity().setTitle(bundle.getString("RoomName"));
+        else {
+            getActivity().setTitle("Chatter");
+        }
         roomId = bundle.getString("RoomId", " ");
         Log.e("TAG", "onCreateView: " + roomId);
 
