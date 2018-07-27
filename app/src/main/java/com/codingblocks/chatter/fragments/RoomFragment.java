@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -38,6 +39,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -50,26 +52,34 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+/**
+ * A simple {@link Fragment} subclass.
+ */
 public class RoomFragment extends Fragment {
 
-    public RoomFragment() {
-        // Required empty public constructor
-    }
-
     private OkHttpClient client = new OkHttpClient();
-
     @BindView(R.id.recycler_view)
     public RecyclerView recyclerView;
     @BindView(R.id.inputMessage)
     public EditText inputMessage;
     @BindView(R.id.sendButton)
     public ImageButton sendButton;
+    MessagesAdapter adapter;
+    LinearLayoutManager layoutManager;
+    List<MessagesTable> messages = new ArrayList<>();
     String roomId;
-    List<MessagesTable> messages;
+
+    //Database
     RoomsDatabase roomdb;
     RoomsDao roomsDao;
+
     MessagesDatabase messagesDatabase;
     MessagesDao messagesDao;
+
+    public RoomFragment() {
+        // Required empty public constructor
+    }
+
 
     @SuppressLint("StaticFieldLeak")
     @Override
@@ -84,8 +94,6 @@ public class RoomFragment extends Fragment {
             getActivity().setTitle("Chatter");
         }
         roomId = bundle.getString("RoomId", " ");
-        Log.e("TAG", "onCreateView: " + roomId);
-
         if (roomId.equals(" ")) {
             Toast.makeText(
                     this.getContext(),
@@ -93,12 +101,9 @@ public class RoomFragment extends Fragment {
                     Toast.LENGTH_SHORT
             ).show();
         }
+        init();
 
-        messagesDatabase = MessagesDatabase.getInstance(getContext());
-        messagesDao = messagesDatabase.messagesDao();
-        messages = new ArrayList<>();
-
-
+        /* Sent message button */
         roomdb = RoomsDatabase.getInstance(getContext());
         roomsDao = roomdb.roomsDao();
         final List<RoomsTable> currentRoom = new ArrayList<>();
@@ -116,29 +121,6 @@ public class RoomFragment extends Fragment {
                 currentRoom.addAll(rooms);
             }
         }.execute();
-
-
-        displayMessages(messages, roomId);
-
-        /* Resetting the placeholder text and setting it back if its empty */
-        inputMessage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (inputMessage.getText().toString().equals("Type in here to sent")) {
-                    inputMessage.setHint(R.string.type_in_placeholder);
-                }
-            }
-        });
-        inputMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-                if (inputMessage.getText().toString().trim().equals("")) {
-                    inputMessage.setHint(R.string.type_in_placeholder);
-                }
-            }
-        });
-
-        /* Sent message button */
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -151,59 +133,56 @@ public class RoomFragment extends Fragment {
         return view;
     }
 
-
-    public boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) getActivity()
-                        .getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
-
-    RecyclerView.Adapter adapter;
-
     @SuppressLint("StaticFieldLeak")
-    public void displayMessages(final List<MessagesTable> messages, final String roomId) {
-        /* No messages, let's get them first */
-        if (messages.size() == 0) {
-            getMessages(1, roomId);
-        }
+    private void init() {
+        messagesDatabase = MessagesDatabase.getInstance(getContext());
+        messagesDao = messagesDatabase.messagesDao();
 
-        getActivity().runOnUiThread(new Runnable() {
+        new AsyncTask<Void, Void, List<MessagesTable>>() {
+            @Override
+            protected List<MessagesTable> doInBackground(Void... voids) {
+                return messagesDao.getRoomMessages(roomId);
+            }
 
             @Override
-            public void run() {
+            protected void onPostExecute(List<MessagesTable> messagesTables) {
+                Log.d("TAG", "onPostExecute: " + messages.size() + messagesTables.size());
+                messages.clear();
+                messages.addAll(messagesTables);
+                adapter.notifyDataSetChanged();
+                if (messages.size() == 0)
+                    getMessages(1, null);
+            }
+        }.execute();
+        /* No messages, let's get them first */
 
-                // Stuff that updates the UI
-                adapter = new MessagesAdapter(messages, getActivity().getApplicationContext());
-                LinearLayoutManager layoutManager =
-                        new LinearLayoutManager(getActivity().getApplicationContext());
+        adapter = new MessagesAdapter(messages, getContext());
+        recyclerView.setHasFixedSize(true);
+        layoutManager = new LinearLayoutManager(getContext());
+        layoutManager.setReverseLayout(true);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int firstVisibleItemPosition = layoutManager.findLastCompletelyVisibleItemPosition();
+                int totalItemCount = layoutManager.getItemCount();
+                Log.i("TAG", "onScrolled:     " + firstVisibleItemPosition);
+                if (firstVisibleItemPosition + 1 == totalItemCount) {
+                    Log.i("TAG", "onScrolled:   " + firstVisibleItemPosition + messages.get(firstVisibleItemPosition).getText());
+                    getMessages(0, messages.get(firstVisibleItemPosition).getuId());
 
-                layoutManager.setStackFromEnd(true);
-                recyclerView.setLayoutManager(layoutManager);
-                recyclerView.setAdapter(adapter);
-                new AsyncTask<Void, Void, List<MessagesTable>>() {
-
-                    @Override
-                    protected List<MessagesTable> doInBackground(Void... voids) {
-                        return messagesDao.getRoomMessages(roomId);
-                    }
-
-                    @Override
-                    protected void onPostExecute(List<MessagesTable> rooms) {
-                        messages.clear();
-                        messages.addAll(rooms);
-                    }
-                }.execute();
+                }
             }
         });
 
-        /* Get messages if network is available
-           [we have old ones but checking for updates] */
-//        getMessages(0, roomId);
+
     }
 
-    public void getMessages(int severity, final String roomId) {
+    private void getMessages(int severity, final String nextMessageId) {
+        final List<MessagesTable> messagesTableList = new ArrayList<>();
         if (isNetworkAvailable()) {
             /* Display a toast to inform the user that we are syncing */
             Toast.makeText(
@@ -217,34 +196,34 @@ public class RoomFragment extends Fragment {
                 getActivity().startActivity(intent);
                 getActivity().finish();
             }
-            Request request = new Request.Builder()
-                    .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?access_token=" + accessToken)
-//                    .addHeader("Accept", "application/json")
-//                    .addHeader("Authorization:", "Bearer " + accessToken)
-                    .build();
 
+            //start fetching Messages
+            Request request = new Request.Builder()
+                    .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?access_token=" + accessToken + "&limit=20")
+                    .build();
+            if (nextMessageId != null) {
+                Log.i("TAG", "getMessages: " + nextMessageId);
+                request = new Request.Builder()
+                        .url("https://api.gitter.im/v1/rooms/" + roomId + "/chatMessages?access_token=" + accessToken + "&limit=20&beforeId=" + nextMessageId)
+                        .build();
+            }
             client.newCall(request).enqueue(new Callback() {
                 @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    e.printStackTrace();
+                public void onFailure(Call call, IOException e) {
+
                 }
 
                 @SuppressLint("StaticFieldLeak")
                 @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response)
-                        throws IOException {
-                /* Simple hack for compatibility as API 19 is required for
-                       new JSONArray */
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     final String responseText = "{\"messages\":" + response.body().string() + "}";
-                    Log.e("TAG access", "onResponse: " + accessToken);
-//                    Log.e("TAG RESPONSE", "onResponse: " + responseText );
                     try {
                         JSONObject JObject = new JSONObject(responseText);
                         JSONArray JArray = JObject.getJSONArray("messages");
                         int i;
                         for (i = 0; i < JArray.length(); i++) {
-
                             JSONObject dynamicJObject = JArray.getJSONObject(i);
+                            Log.d("TAG access", "onResponse: " + dynamicJObject.getString("text"));
                             String uId = dynamicJObject.getString("id");
                             String text = dynamicJObject.getString("text");
                             String timestamp = dynamicJObject.getString("sent");
@@ -254,23 +233,8 @@ public class RoomFragment extends Fragment {
                             String username = userObject.getString("username");
                             String avatarUrl = userObject.getString("avatarUrlMedium");
 
-                            MessagesTable containedMessage = messagesDao.getById(uId);
-
-                            Integer maxId = messagesDao.getMax();
-                            // If id is null, set it to 1, else set increment it by 1
-                            int nextId = (maxId == null) ? 1 : maxId + 1;
-
-                            if (containedMessage != null) {
-                                // Save the id so that if when we delete, we can insert it into the empty slot
-                                // since we are sorting by id
-                                nextId = containedMessage.getId();
-                                // Delete that message, so you can push an update ;)
-                                messagesDao.delete(containedMessage);
-                                messages.remove(containedMessage);
-                            }
-
                             final MessagesTable message = new MessagesTable();
-                            message.setId(nextId);
+//                            message.setId(nextId);
                             message.setUId(uId);
                             message.setText(text);
                             message.setTimestamp(timestamp);
@@ -280,25 +244,8 @@ public class RoomFragment extends Fragment {
                             message.setRoomId(roomId);
                             message.setUsername(username);
                             message.setUserAvater(avatarUrl);
+                            messagesTableList.add(message);
 
-                            new AsyncTask<Void, Void, Void>() {
-
-                                @Override
-                                protected Void doInBackground(Void... voids) {
-                                    try {
-                                        messagesDao.addMessages(message);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                    return null;
-                                }
-
-                                @Override
-                                protected void onPostExecute(Void aVoid) {
-                                    super.onPostExecute(aVoid);
-                                    adapter.notifyDataSetChanged();
-                                }
-                            }.execute();
                         }
                         if (i == 0) {
                             Looper.prepare();
@@ -314,22 +261,39 @@ public class RoomFragment extends Fragment {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     } finally {
+                        Collections.reverse(messagesTableList);
+                        messagesDao.addMultipleMessages(messagesTableList);
+                        messages.addAll(messagesTableList);
                         if (getActivity() != null)
                             getActivity().runOnUiThread(new Runnable() {
+                                @SuppressLint("StaticFieldLeak")
                                 @Override
                                 public void run() {
-                                    displayMessages(messages, roomId);
+                                    adapter.notifyDataSetChanged();
+                                    if (nextMessageId == null) {
+                                        recyclerView.scrollToPosition(0);
+                                    }
                                 }
                             });
                     }
                 }
             });
+
         } else if (severity == 1) {
             Intent intent = new Intent(getActivity(), NoNetworkActivity.class);
             intent.putExtra("calledFrom", "DashboardActivity");
             getActivity().startActivity(intent);
             getActivity().finish();
         }
+
+    }
+
+    public boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getActivity()
+                        .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -478,7 +442,7 @@ public class RoomFragment extends Fragment {
                         e.printStackTrace();
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        displayMessages(messages, roomId);
+//                        displayMessages(messages, roomId);
                     }
                 }
             });
