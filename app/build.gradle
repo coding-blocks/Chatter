@@ -1,25 +1,6 @@
-import org.moallemi.gradle.internal.VersionCodeType
-
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
-apply plugin: 'com.github.triplet.play'
-apply plugin: 'org.moallemi.advanced-build-version'
 
-advancedVersioning {
-    nameOptions {
-        versionMajor 2
-        versionMinor 0
-    }
-
-    codeOptions {
-        versionCodeType VersionCodeType.AUTO_INCREMENT_DATE
-        dependsOnTasks 'release' // defaultValue
-    }
-    outputOptions {
-        renameOutput true
-        nameFormat '${appName}-${buildType}-${versionName}'
-    }
-}
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
@@ -27,9 +8,8 @@ android {
         applicationId "com.codingblocks.chatter"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode advancedVersioning.versionCode
-        versionName advancedVersioning.versionName
-//        versionName "0.1.1"
+        versionCode 11
+        versionName "0.1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -74,9 +54,4 @@ dependencies {
     compile "android.arch.persistence.room:runtime:1.1.1-rc1"
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1-rc1"
 }
-play {
 
-    //track can be set to production,alpha or beta
-    jsonFile = file('your-key.json')
-    track = 'beta'
-}
