@@ -9,12 +9,14 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.codingblocks.chatter.fragments.RoomsFragment;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -60,9 +62,7 @@ public class DashboardActivity extends AppCompatActivity {
                 avatarUrl.equals("")) {
             if (isNetworkAvailable()) {
                 Request request = new Request.Builder()
-                        .url("https://gitter.im/v1/user/me")
-                        .addHeader("Accept", "application/json")
-                        .addHeader("Authorization:", "Bearer " + accessToken)
+                        .url("https://api.gitter.im/v1/user?access_token=" + accessToken)
                         .build();
 
                 client.newCall(request).enqueue(new Callback() {
@@ -75,7 +75,10 @@ public class DashboardActivity extends AppCompatActivity {
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         try {
                             String responseText = response.body().string();
-                            JSONObject Jobject = new JSONObject(responseText);
+                            Log.i("TAG", "onResponse: " + responseText);
+                            JSONArray jsonarray = new JSONArray(responseText);
+                            JSONObject Jobject = jsonarray.getJSONObject(0);
+
                             final String username = Jobject.getString("username");
                             final String idOfUser = Jobject.getString("id");
                             final String displayName = Jobject.getString("displayName");
@@ -132,22 +135,5 @@ public class DashboardActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
 
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.my_options_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.preferences:
-                startActivity(new Intent(DashboardActivity.this, SettingsActivity.class));
-                return true;
-
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }
