@@ -135,22 +135,5 @@ public class DashboardActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
 
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.my_options_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.preferences:
-                startActivity(new Intent(DashboardActivity.this, SettingsActivity.class));
-                return true;
-
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }
