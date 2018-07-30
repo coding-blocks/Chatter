@@ -75,7 +75,7 @@ public class DashboardActivity extends AppCompatActivity {
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         try {
                             String responseText = response.body().string();
-                            Log.i("TAG", "onResponse: " + responseText);
+                            Log.i("TAG", "onResponseofUser: " + responseText);
                             JSONArray jsonarray = new JSONArray(responseText);
                             JSONObject Jobject = jsonarray.getJSONObject(0);
 
@@ -125,10 +125,11 @@ public class DashboardActivity extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void openRoom(String id, String roomName) {
+    public void openRoom(String id, String roomName, int userCount) {
         Bundle bundle = new Bundle();
         bundle.putString("RoomId", id);
         bundle.putString("RoomName", roomName);
+        bundle.putInt("userCount", userCount);
         Intent roomIntent = new Intent(DashboardActivity.this, RoomActivity.class);
         roomIntent.putExtras(bundle);
         startActivity(roomIntent);
