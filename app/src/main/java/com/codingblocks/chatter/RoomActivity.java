@@ -73,8 +73,9 @@ public class RoomActivity extends AppCompatActivity {
                 .url("https://api.gitter.im/v1/rooms/"
                         + roomId
                         + "/users/"
-                        + uid
-                        + "?access_token=" + accessToken)
+                        + uid)
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
                 .delete()
                 .build();
 

@@ -62,7 +62,9 @@ public class DashboardActivity extends AppCompatActivity {
                 avatarUrl.equals("")) {
             if (isNetworkAvailable()) {
                 Request request = new Request.Builder()
-                        .url("https://api.gitter.im/v1/user?access_token=" + accessToken)
+                        .url("https://api.gitter.im/v1/user")
+                        .addHeader("Accept", "application/json")
+                        .addHeader("Authorization", "Bearer " + accessToken)
                         .build();
 
                 client.newCall(request).enqueue(new Callback() {
