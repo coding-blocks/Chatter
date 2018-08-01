@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.codingblocks.chatter.fragments.BottomSheetGroupFragment;
 import com.codingblocks.chatter.fragments.RoomFragment;
 import com.codingblocks.chatter.models.MessagesDao;
 import com.codingblocks.chatter.models.RoomsDao;
@@ -130,11 +131,15 @@ public class RoomActivity extends AppCompatActivity {
 
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.my_room_options_menu, menu);
-        MenuItem item = menu.findItem(R.id.leaveRoom);
+        MenuItem item1 = menu.findItem(R.id.leaveRoom);
+        MenuItem item2 = menu.findItem(R.id.aboutRoom);
         if (usercount == 2) {
-            item.setVisible(false);
-        } else
-            item.setVisible(true);
+            item1.setVisible(false);
+            item2.setVisible(false);
+        } else {
+            item1.setVisible(true);
+            item2.setVisible(true);
+        }
 
         return true;
     }
@@ -146,9 +151,18 @@ public class RoomActivity extends AppCompatActivity {
             case R.id.leaveRoom:
                 leaveRoom(roomId);
                 break;
+            case R.id.aboutRoom:
+                roominfo(roomId);
+                break;
+
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void roominfo(String roomId) {
+        BottomSheetGroupFragment bottomSheetFragment = new BottomSheetGroupFragment();
+        BottomSheetGroupFragment.newInstance(roomId).show(this.getSupportFragmentManager(), bottomSheetFragment.getTag());
     }
 
 }
