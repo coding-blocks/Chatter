@@ -4,7 +4,6 @@ package com.codingblocks.chatter.db;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
-import android.arch.persistence.room.Room;
 import android.support.annotation.NonNull;
 
 @Entity(tableName = "rooms")
@@ -21,7 +20,18 @@ public class RoomsTable {
     private String draftMessage;
     private String roomAvatar;
 
-    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar) {
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
+    private String topic;
+
+
+    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, String topic) {
         this.id = id;
         this.uId = uId;
         this.roomName = roomName;
@@ -30,6 +40,7 @@ public class RoomsTable {
         this.mentions = mentions;
         this.draftMessage = draftMessage;
         this.roomAvatar = roomAvatar;
+        this.topic = topic;
     }
 
     @Ignore
