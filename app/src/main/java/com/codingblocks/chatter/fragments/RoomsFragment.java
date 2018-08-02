@@ -24,7 +24,6 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.Toast;
 
-import com.codingblocks.chatter.DashboardActivity;
 import com.codingblocks.chatter.MessagesDatabase;
 import com.codingblocks.chatter.NoNetworkActivity;
 import com.codingblocks.chatter.R;
@@ -206,12 +205,9 @@ public class RoomsFragment extends Fragment {
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
+                                    boolean roomMember = dynamicJObject.getBoolean("roomMember");
                                     Log.i(TAG, "run: " + dynamicJObject.toString());
 
-//
-
-
-//
 //                                    // Get the current max id in the EntityName table
                                     int maxId = dao.getMax();
                                     Log.i(TAG, "onPostExecute: dao max" + dao.getMax());
@@ -236,6 +232,7 @@ public class RoomsFragment extends Fragment {
                                     room.setUnreadItems(unreadItems);
                                     room.setMentions(mentions);
                                     room.setRoomAvatar(url);
+                                    room.setRoomMember(roomMember);
 //
 //                                    // Begin, copy and commit
 ////                                    realm.beginTransaction();
@@ -389,6 +386,7 @@ public class RoomsFragment extends Fragment {
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
+                                    boolean roomMember = dynamicJObject.getBoolean("roomMember");
                                     Log.i(TAG, "run: " + dynamicJObject.toString());
                                     final RoomsTable room = new RoomsTable();
                                     room.setuId(uId);
@@ -397,6 +395,7 @@ public class RoomsFragment extends Fragment {
                                     room.setUnreadItems(unreadItems);
                                     room.setMentions(mentions);
                                     room.setRoomAvatar(url);
+                                    room.setRoomMember(roomMember);
                                     mRooms.add(room);
                                 }
                             } catch (JSONException e) {

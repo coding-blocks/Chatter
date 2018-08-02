@@ -1,22 +1,15 @@
 package com.codingblocks.chatter;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 
 import com.codingblocks.chatter.fragments.RoomsFragment;
 
@@ -39,7 +32,6 @@ public class DashboardActivity extends AppCompatActivity {
     OkHttpClient client = new OkHttpClient();
     SharedPreferences sharedPreferences;
     //Database
-
 
 
     @Override
@@ -134,11 +126,12 @@ public class DashboardActivity extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void openRoom(String id, String roomName, int userCount) {
+    public void openRoom(String id, String roomName, int userCount, boolean roomMember) {
         Bundle bundle = new Bundle();
         bundle.putString("RoomId", id);
         bundle.putString("RoomName", roomName);
         bundle.putInt("userCount", userCount);
+        bundle.putBoolean("roomMember", roomMember);
         Intent roomIntent = new Intent(DashboardActivity.this, RoomActivity.class);
         roomIntent.putExtras(bundle);
         startActivity(roomIntent);

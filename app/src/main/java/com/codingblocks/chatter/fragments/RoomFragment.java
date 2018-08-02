@@ -10,6 +10,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -64,6 +66,8 @@ public class RoomFragment extends Fragment {
     public EditText inputMessage;
     @BindView(R.id.sendButton)
     public ImageButton sendButton;
+    @BindView(R.id.joinRoom)
+    FloatingActionButton fab;
     MessagesAdapter adapter;
     LinearLayoutManager layoutManager;
     List<MessagesTable> messages = new ArrayList<>();
@@ -87,7 +91,7 @@ public class RoomFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
         ButterKnife.bind(this, view);
-        Bundle bundle = this.getArguments();
+        final Bundle bundle = this.getArguments();
         if (bundle.getString("RoomName") != null)
             getActivity().setTitle(bundle.getString("RoomName"));
         else {
@@ -104,6 +108,7 @@ public class RoomFragment extends Fragment {
         init();
 
         /* Sent message button */
+
         roomdb = RoomsDatabase.getInstance(getContext());
         roomsDao = roomdb.roomsDao();
         final List<RoomsTable> currentRoom = new ArrayList<>();
@@ -119,8 +124,20 @@ public class RoomFragment extends Fragment {
             protected void onPostExecute(List<RoomsTable> rooms) {
                 currentRoom.clear();
                 currentRoom.addAll(rooms);
+                if (!bundle.getBoolean("roomMember")) {
+                    sendButton.setOnClickListener(null);
+                    inputMessage.setEnabled(false);
+                    fab.setVisibility(View.VISIBLE);
+                    fab.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            joinRoom(view);
+                        }
+                    });
+                }
             }
         }.execute();
+
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,7 +147,51 @@ public class RoomFragment extends Fragment {
                 }
             }
         });
+
         return view;
+    }
+
+    private void joinRoom(final View view) {
+        final String accessToken = getActivity()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("accessToken", "");
+        String uid = getActivity()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("idOfUser", "");
+        Log.i("TAG", "onResponse: " + uid + accessToken);
+        RequestBody requestBody = new FormBody.Builder()
+                .add("id", roomId)
+                .build();
+        final Request request = new Request.Builder()
+                .url("https://api.gitter.im/v1/user/"
+                        + uid
+                        + "/rooms")
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .post(requestBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Snackbar.make(view, "Added in the Room", Snackbar.LENGTH_LONG).show();
+                            fab.setVisibility(View.GONE);
+                            inputMessage.setEnabled(true);
+                        }
+                    });
+
+                }
+
+            }
+        });
     }
 
     @SuppressLint("StaticFieldLeak")
