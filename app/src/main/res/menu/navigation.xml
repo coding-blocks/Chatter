@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_messages"
+        android:icon="@drawable/ic_message_black_24dp"
+        android:title="@string/messages" />
+
+    <item
+        android:id="@+id/navigation_communities"
+        android:icon="@drawable/ic_group_black_24dp"
+        android:title="@string/communities"/>
+
+    <item
+        android:id="@+id/navigation_settings"
+        android:icon="@drawable/ic_build_black_24dp"
+        android:title="@string/settings"/>
+
+</menu>

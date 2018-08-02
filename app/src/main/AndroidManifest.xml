@@ -69,10 +69,6 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".RoomActivity" />
-        <activity
-            android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
     </application>
 
 </manifest>
