@@ -2,11 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/aboutRoom"
-        android:title="Room Info" />
+        android:id="@+id/markRead"
+        android:title="Mark all as Read" />
+
     <item
         android:id="@+id/favourite"
         android:title="Add to favourite" />
+    <item
+        android:id="@+id/aboutRoom"
+        android:title="Room Info" />
 
     <item
         android:id="@+id/leaveRoom"
