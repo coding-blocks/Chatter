@@ -27,6 +27,9 @@ public interface RoomsDao {
     @Query("SELECT * FROM rooms WHERE uId = :uId ORDER BY id DESC")
     RoomsTable getRoomWithuId(String uId);
 
+    @Query("SELECT * FROM rooms WHERE userCount = 2 ORDER BY id DESC")
+    List<RoomsTable> getPeopleRooms();
+
 
     //Get the current max id
     @Query("SELECT MAX(id) FROM rooms")

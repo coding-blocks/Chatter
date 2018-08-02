@@ -49,7 +49,18 @@ public class RoomsFragment extends Fragment {
     List<RoomsTable> mRooms = new ArrayList<>();
     RoomsDatabase db;
     RoomsDao dao;
+    String filter;
 
+    public static RoomsFragment newInstance(String filter) {
+
+        RoomsFragment bottomSheetFragment = new RoomsFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString("filter", filter);
+        bottomSheetFragment.setArguments(bundle);
+
+        return bottomSheetFragment;
+
+    }
 
     public RoomsFragment() {
         // Required empty public constructor
@@ -67,14 +78,14 @@ public class RoomsFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
         ButterKnife.bind(this, view);
-
+        filter = getArguments().getString("filter");
         db = RoomsDatabase.getInstance(getContext());
         dao = db.roomsDao();
 
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        displayRooms(mRooms);
+        displayRooms(mRooms, filter);
 
         return view;
     }
@@ -88,7 +99,7 @@ public class RoomsFragment extends Fragment {
     }
 
     @SuppressLint("StaticFieldLeak")
-    public void displayRooms(List<RoomsTable> rooms) {
+    public void displayRooms(List<RoomsTable> rooms, final String filter) {
         /* No rooms, let's get them first */
         if (rooms.size() == 0) {
             /* Internet is needed for sure to get the rooms */
@@ -99,11 +110,20 @@ public class RoomsFragment extends Fragment {
 
             @Override
             protected List<RoomsTable> doInBackground(Void... voids) {
-                return dao.getAllRooms();
+                Log.i(TAG, "doInBackground: " + filter);
+                switch (filter) {
+                    case "All":
+                        return dao.getAllRooms();
+                    case "oneToone":
+                        return dao.getPeopleRooms();
+                    default:
+                        return dao.getAllRooms();
+                }
             }
 
             @Override
             protected void onPostExecute(List<RoomsTable> notes) {
+                Log.i(TAG, "onPostExecute: " + notes.get(0).getRoomName());
                 mRooms.clear();
                 mRooms.addAll(notes);
             }
@@ -111,19 +131,6 @@ public class RoomsFragment extends Fragment {
 
         adapter = new RoomsAdapter(rooms, getContext());
         recyclerView.setAdapter(adapter);
-        new AsyncTask<Void, Void, List<RoomsTable>>() {
-
-            @Override
-            protected List<RoomsTable> doInBackground(Void... voids) {
-                return dao.getAllRooms();
-            }
-
-            @Override
-            protected void onPostExecute(List<RoomsTable> notes) {
-                mRooms.clear();
-                mRooms.addAll(notes);
-            }
-        }.execute();
 
         /* Get rooms if network is available
            [we have old ones but checking for updates] */
