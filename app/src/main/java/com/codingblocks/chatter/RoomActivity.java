@@ -21,8 +21,10 @@ import java.io.IOException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class RoomActivity extends AppCompatActivity {
@@ -33,21 +35,31 @@ public class RoomActivity extends AppCompatActivity {
     //Database
     RoomsDatabase roomdb;
     RoomsDao roomsDao;
+    private Menu menu;
+
 
     MessagesDatabase messagesDatabase;
     MessagesDao messagesDao;
-
+    String accessToken;
+    String uid;
+    boolean status = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room);
-
+        accessToken = this
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("accessToken", "");
+        uid = this
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("idOfUser", "");
+        Log.i("TAG", "onResponse: " + uid + accessToken);
         Intent i = getIntent();
         Bundle bundle = i.getExtras();
         roomId = (String) bundle.get("RoomId");
         usercount = (int) bundle.get("userCount");
-        Log.i("TAG", "onCreate: " + i.getExtras() + i.getBundleExtra("RoomId") + bundle.get("RoomId") + "userCount" + bundle.get("userCount"));
+        status = bundle.getBoolean("favourite");
         RoomFragment roomFragment = new RoomFragment();
         roomFragment.setArguments(bundle);
         getSupportFragmentManager()
@@ -61,13 +73,7 @@ public class RoomActivity extends AppCompatActivity {
     }
 
     private void leaveRoom(final String roomId) {
-        final String accessToken = this
-                .getSharedPreferences("UserPreferences", 0)
-                .getString("accessToken", "");
-        String uid = this
-                .getSharedPreferences("UserPreferences", 0)
-                .getString("idOfUser", "");
-        Log.i("TAG", "onResponse: " + uid + accessToken);
+
 
         final Request request = new Request.Builder()
                 .url("https://api.gitter.im/v1/rooms/"
@@ -127,14 +133,20 @@ public class RoomActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
+        this.menu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.my_room_options_menu, menu);
         MenuItem item = menu.findItem(R.id.leaveRoom);
+        MenuItem fav = menu.findItem(R.id.favourite);
         if (usercount == 2) {
             item.setVisible(false);
         } else
             item.setVisible(true);
+        if (!status) {
+            MenuItem menuItem = menu.findItem(R.id.favourite);
+            menuItem.setTitle("Add to Favourites");
+        }
+
 
         return true;
     }
@@ -146,9 +158,47 @@ public class RoomActivity extends AppCompatActivity {
             case R.id.leaveRoom:
                 leaveRoom(roomId);
                 break;
+            case R.id.favourite:
+                addtofav(roomId);
+                break;
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void addtofav(String roomId) {
+        RequestBody requestBody = new FormBody.Builder()
+                .add("favourite", "" + !status)
+                .build();
+        final Request request = new Request.Builder()
+                .url("https://api.gitter.im/v1/"
+                        + "user/"
+                        + uid +
+                        "/rooms/"
+                        + roomId
+                )
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .put(requestBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    if (!status) {
+                        MenuItem menuItem = menu.findItem(R.id.favourite);
+                        menuItem.setTitle("Remove from Favourites");
+                        status = !status;
+                    }
+                }
+            }
+        });
+
     }
 
 }

@@ -19,11 +19,11 @@ import android.widget.Toast;
 
 import com.codingblocks.chatter.NoNetworkActivity;
 import com.codingblocks.chatter.R;
-import com.codingblocks.chatter.models.RoomsDao;
 import com.codingblocks.chatter.RoomsDatabase;
-import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.SplashActivity;
 import com.codingblocks.chatter.adapters.RoomsAdapter;
+import com.codingblocks.chatter.db.RoomsTable;
+import com.codingblocks.chatter.models.RoomsDao;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,7 +35,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
@@ -188,6 +187,9 @@ public class RoomsFragment extends Fragment {
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
+                                    String favourite = "0";
+                                    if (!dynamicJObject.isNull("favourite"))
+                                        favourite = (dynamicJObject.getString("favourite"));
                                     Log.i(TAG, "run: " + dynamicJObject.toString());
 
 //
@@ -218,6 +220,7 @@ public class RoomsFragment extends Fragment {
                                     room.setUnreadItems(unreadItems);
                                     room.setMentions(mentions);
                                     room.setRoomAvatar(url);
+                                    room.setFavourite(favourite);
 //
 //                                    // Begin, copy and commit
 ////                                    realm.beginTransaction();
@@ -258,8 +261,8 @@ public class RoomsFragment extends Fragment {
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
-                            }finally {
-                                if(mRooms.size()== 0){
+                            } finally {
+                                if (mRooms.size() == 0) {
                                     new AsyncTask<Void, Void, List<RoomsTable>>() {
 
                                         @Override
