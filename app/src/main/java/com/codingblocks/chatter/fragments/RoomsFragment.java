@@ -187,10 +187,10 @@ public class RoomsFragment extends Fragment {
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
-                                    String favourite = "0";
+                                    String favourite = null;
                                     if (!dynamicJObject.isNull("favourite"))
                                         favourite = (dynamicJObject.getString("favourite"));
-                                    Log.i(TAG, "run: " + dynamicJObject.toString());
+                                    Log.i(TAG, "run: " + favourite);
 
 //
 

@@ -42,7 +42,7 @@ public class RoomActivity extends AppCompatActivity {
     MessagesDao messagesDao;
     String accessToken;
     String uid;
-    boolean status = false;
+    String status = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +59,8 @@ public class RoomActivity extends AppCompatActivity {
         Bundle bundle = i.getExtras();
         roomId = (String) bundle.get("RoomId");
         usercount = (int) bundle.get("userCount");
-        status = bundle.getBoolean("favourite");
+        status = bundle.getString("favourite");
+        Log.i("TAG", "onCreate: " + status);
         RoomFragment roomFragment = new RoomFragment();
         roomFragment.setArguments(bundle);
         getSupportFragmentManager()
@@ -142,8 +143,11 @@ public class RoomActivity extends AppCompatActivity {
             item.setVisible(false);
         } else
             item.setVisible(true);
-        if (!status) {
-            MenuItem menuItem = menu.findItem(R.id.favourite);
+        MenuItem menuItem = menu.findItem(R.id.favourite);
+
+        if (status != null) {
+            menuItem.setTitle("Remove from Favourites");
+        } else {
             menuItem.setTitle("Add to Favourites");
         }
 
@@ -166,21 +170,41 @@ public class RoomActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void addtofav(String roomId) {
-        RequestBody requestBody = new FormBody.Builder()
-                .add("favourite", "" + !status)
-                .build();
-        final Request request = new Request.Builder()
-                .url("https://api.gitter.im/v1/"
-                        + "user/"
-                        + uid +
-                        "/rooms/"
-                        + roomId
-                )
-                .addHeader("Accept", "application/json")
-                .addHeader("Authorization", "Bearer " + accessToken)
-                .put(requestBody)
-                .build();
+    private void addtofav(final String roomId) {
+        RequestBody requestBody;
+        Request request;
+        if (status == null) {
+            requestBody = new FormBody.Builder()
+                    .add("favourite", roomId)
+                    .build();
+            request = new Request.Builder()
+                    .url("https://api.gitter.im/v1/"
+                            + "user/"
+                            + uid +
+                            "/rooms/"
+                            + roomId
+                    )
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .put(requestBody)
+                    .build();
+        } else {
+            requestBody = new FormBody.Builder()
+                    .add("favourite", roomId)
+                    .build();
+            request = new Request.Builder()
+                    .url("https://api.gitter.im/v1/"
+                            + "user/"
+                            + uid +
+                            "/rooms/"
+                            + roomId
+                    )
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .delete(requestBody)
+                    .build();
+        }
+
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -189,12 +213,23 @@ public class RoomActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                Log.i("TAG", "onResponse: " + response.body().string());
                 if (response.isSuccessful()) {
-                    if (!status) {
-                        MenuItem menuItem = menu.findItem(R.id.favourite);
-                        menuItem.setTitle("Remove from Favourites");
-                        status = !status;
-                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            MenuItem menuItem = menu.findItem(R.id.favourite);
+                            if (status != null) {
+                                menuItem.setTitle("Add to Favourites");
+                                status = null;
+                            } else {
+                                menuItem.setTitle("Remove from Favourites");
+                                status = roomId;
+                            }
+                        }
+                    });
+
+
                 }
             }
         });
