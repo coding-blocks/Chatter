@@ -1,13 +1,17 @@
 package com.codingblocks.chatter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -33,6 +37,12 @@ public class DashboardActivity extends AppCompatActivity {
 
 
     OkHttpClient client = new OkHttpClient();
+    SharedPreferences sharedPreferences;
+    //Database
+    RoomsDatabase roomdb;
+
+
+    MessagesDatabase messagesDatabase;
 
 
     @Override
@@ -41,8 +51,12 @@ public class DashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
         ButterKnife.bind(this);
 
+        //for deleting db on SignOut
+        roomdb = RoomsDatabase.getInstance(this);
+        messagesDatabase = MessagesDatabase.getInstance(this);
+
         /* Some usefull things */
-        final SharedPreferences sharedPreferences =
+        sharedPreferences =
                 this.getSharedPreferences("UserPreferences", 0);
 
         /* Useful data from Shared Preferences */
@@ -151,9 +165,52 @@ public class DashboardActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.preferences:
                 startActivity(new Intent(DashboardActivity.this, SettingsActivity.class));
-                return true;
+                break;
+            case R.id.signOut:
+                signOut();
+                break;
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void signOut() {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to Sign Out?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @SuppressLint("StaticFieldLeak")
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        new AsyncTask<Void, Void, Void>() {
+
+                            @Override
+                            protected Void doInBackground(Void... voids) {
+                                messagesDatabase.clearAllTables();
+                                roomdb.clearAllTables();
+                                return null;
+                            }
+
+                            @Override
+                            protected void onPostExecute(Void aVoid) {
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.clear();
+                                editor.commit();
+                                Intent intent = new Intent(DashboardActivity.this, SplashActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }
+                        }.execute();
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
 }
