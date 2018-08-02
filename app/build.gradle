@@ -29,7 +29,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation 'com.android.support:support-vector-drawable:27.1.1'
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -50,6 +50,6 @@ dependencies {
     implementation 'com.android.support:support-v4:27.1.1'
     //Picasso for image loading
     implementation 'com.squareup.picasso:picasso:2.71828'
-    compile "android.arch.persistence.room:runtime:1.1.1-rc1"
-    annotationProcessor "android.arch.persistence.room:compiler:1.1.1-rc1"
+    implementation "android.arch.persistence.room:runtime:1.1.1"
+    annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
 }

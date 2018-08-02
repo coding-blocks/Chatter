@@ -76,7 +76,7 @@ public class DashboardActivity extends AppCompatActivity {
                 Request request = new Request.Builder()
                         .url("https://gitter.im/v1/user/me")
                         .addHeader("Accept", "application/json")
-                        .addHeader("Authorization:", "Bearer " + accessToken)
+                        .addHeader("Authorization", "Bearer " + accessToken)
                         .build();
 
                 client.newCall(request).enqueue(new Callback() {

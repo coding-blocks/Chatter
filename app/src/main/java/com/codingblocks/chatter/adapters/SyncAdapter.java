@@ -100,7 +100,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                                 + messagesToBeSent.get(i).getRoomId()
                                 + "/chatMessages")
                         .addHeader("Accept", "application/json")
-                        .addHeader("Authorization:", "Bearer " + accessToken)
+                        .addHeader("Authorization", "Bearer " + accessToken)
                         .post(requestBody)
                         .build();
                 client.newCall(request).enqueue(new Callback() {
