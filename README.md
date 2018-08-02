@@ -11,7 +11,7 @@ Chat app for gitter
 
 Screenshots :
 
-<img src="https://user-images.githubusercontent.com/31950172/41077218-01ecf9a4-6a33-11e8-97ad-9999e8f6a60a.gif" width=300>
+<img src="https://user-images.githubusercontent.com/29139786/43609356-62d17ee2-96c1-11e8-9414-d3a00490d362.gif" width=300>
 
 <img src="https://user-images.githubusercontent.com/31950172/40463974-eed8a668-5f35-11e8-85e0-1675e4b3e457.png" width=300><img src="https://user-images.githubusercontent.com/31950172/40463975-ef141fc2-5f35-11e8-883c-f3758db0b350.png" width=300>
 
