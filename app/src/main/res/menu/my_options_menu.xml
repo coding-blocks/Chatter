@@ -3,6 +3,8 @@
 
     <item android:id="@+id/preferences"
         android:title="Preferences" />
+    <item android:id="@+id/signOut"
+        android:title="Sign Out" />
 
 
 </menu>

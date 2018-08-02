@@ -30,7 +30,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
             super(view);
             roomName = (TextView) view.findViewById(R.id.room_name);
             roomUnread = (TextView) view.findViewById(R.id.room_unread);
-            avatarImage= (ImageView) view.findViewById(R.id.avatar);
+            avatarImage = (ImageView) view.findViewById(R.id.avatar);
         }
     }
 
@@ -43,7 +43,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
     public RoomsAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int i) {
         View itemView =
                 LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.room_item, parent, false);
+                        .inflate(R.layout.room_item, parent, false);
         return new MyViewHolder(itemView);
     }
 
@@ -52,7 +52,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
         RoomsTable room = rooms.get(i);
         myViewHolder.roomName.setText(room.getRoomName());
         Picasso.get().load(room.getRoomAvatar()).into(myViewHolder.avatarImage);
-        if(room.getMentions() > 0){
+        if (room.getMentions() > 0) {
             myViewHolder.roomUnread.setText("@");
             myViewHolder.roomUnread.setBackgroundColor(
                     context.getResources().getColor(R.color.colorAccent)
@@ -65,11 +65,13 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
         }
         final String roomId = room.getuId();
         final String roomName = room.getRoomName();
+        final int userCount = room.getUserCount();
+
         myViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ((DashboardActivity) myViewHolder.itemView.getContext())
-                        .openRoom(roomId,roomName);
+                        .openRoom(roomId, roomName, userCount);
             }
         });
     }

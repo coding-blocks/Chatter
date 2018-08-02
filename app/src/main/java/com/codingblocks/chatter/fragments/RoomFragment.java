@@ -373,7 +373,7 @@ public class RoomFragment extends Fragment {
                             + currentRoom.get(0).getuId()
                             + "/chatMessages")
                     .addHeader("Accept", "application/json")
-                    .addHeader("Authorization:", "Bearer " + accessToken)
+                    .addHeader("Authorization", "Bearer " + accessToken)
                     .post(requestBody)
                     .build();
             client.newCall(request).enqueue(new Callback() {

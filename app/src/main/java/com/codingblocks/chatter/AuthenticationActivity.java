@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -51,6 +52,8 @@ public class AuthenticationActivity extends AppCompatActivity {
         authenticationWebView.getSettings().setSupportZoom(true);
         authenticationWebView.getSettings().setDomStorageEnabled(true);
         authenticationWebView.getSettings().setJavaScriptEnabled(true);
+        android.webkit.CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.removeAllCookie();
         authenticationWebView.setWebViewClient(new WebViewClient() {
             // shouldOverrideUrlLoading makes this `WebView` the default handler for URLs
             // inside the app, so that links are not kicked out to other apps.
