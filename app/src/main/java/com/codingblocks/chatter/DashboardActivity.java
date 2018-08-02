@@ -39,10 +39,7 @@ public class DashboardActivity extends AppCompatActivity {
     OkHttpClient client = new OkHttpClient();
     SharedPreferences sharedPreferences;
     //Database
-    RoomsDatabase roomdb;
 
-
-    MessagesDatabase messagesDatabase;
 
 
     @Override
@@ -50,10 +47,6 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
         ButterKnife.bind(this);
-
-        //for deleting db on SignOut
-        roomdb = RoomsDatabase.getInstance(this);
-        messagesDatabase = MessagesDatabase.getInstance(this);
 
         /* Some usefull things */
         sharedPreferences =
@@ -152,65 +145,5 @@ public class DashboardActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
 
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.my_options_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.preferences:
-                startActivity(new Intent(DashboardActivity.this, SettingsActivity.class));
-                break;
-            case R.id.signOut:
-                signOut();
-                break;
-
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void signOut() {
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setMessage("Are you sure you want to Sign Out?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @SuppressLint("StaticFieldLeak")
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        new AsyncTask<Void, Void, Void>() {
-
-                            @Override
-                            protected Void doInBackground(Void... voids) {
-                                messagesDatabase.clearAllTables();
-                                roomdb.clearAllTables();
-                                return null;
-                            }
-
-                            @Override
-                            protected void onPostExecute(Void aVoid) {
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.clear();
-                                editor.commit();
-                                Intent intent = new Intent(DashboardActivity.this, SplashActivity.class);
-                                startActivity(intent);
-                                finish();
-                            }
-                        }.execute();
-
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .show();
-    }
 }

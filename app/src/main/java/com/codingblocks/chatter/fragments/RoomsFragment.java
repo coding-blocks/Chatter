@@ -2,28 +2,38 @@ package com.codingblocks.chatter.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 import android.widget.Toast;
 
+import com.codingblocks.chatter.DashboardActivity;
+import com.codingblocks.chatter.MessagesDatabase;
 import com.codingblocks.chatter.NoNetworkActivity;
 import com.codingblocks.chatter.R;
-import com.codingblocks.chatter.models.RoomsDao;
 import com.codingblocks.chatter.RoomsDatabase;
-import com.codingblocks.chatter.db.RoomsTable;
+import com.codingblocks.chatter.SettingsActivity;
 import com.codingblocks.chatter.SplashActivity;
 import com.codingblocks.chatter.adapters.RoomsAdapter;
+import com.codingblocks.chatter.db.RoomsTable;
+import com.codingblocks.chatter.models.RoomsDao;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,7 +45,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
@@ -50,6 +59,9 @@ public class RoomsFragment extends Fragment {
     List<RoomsTable> mRooms = new ArrayList<>();
     RoomsDatabase db;
     RoomsDao dao;
+    SharedPreferences sharedPreferences;
+    RoomsDatabase roomdb;
+    MessagesDatabase messagesDatabase;
 
 
     public RoomsFragment() {
@@ -71,11 +83,17 @@ public class RoomsFragment extends Fragment {
 
         db = RoomsDatabase.getInstance(getContext());
         dao = db.roomsDao();
+        //for deleting db on SignOut
+        roomdb = RoomsDatabase.getInstance(getContext());
+        messagesDatabase = MessagesDatabase.getInstance(getContext());
 
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         displayRooms(mRooms);
+        setHasOptionsMenu(true);
+        sharedPreferences =
+                getActivity().getSharedPreferences("UserPreferences", 0);
 
         return view;
     }
@@ -258,8 +276,8 @@ public class RoomsFragment extends Fragment {
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
-                            }finally {
-                                if(mRooms.size()== 0){
+                            } finally {
+                                if (mRooms.size() == 0) {
                                     new AsyncTask<Void, Void, List<RoomsTable>>() {
 
                                         @Override
@@ -287,5 +305,174 @@ public class RoomsFragment extends Fragment {
             getActivity().startActivity(intent);
             getActivity().finish();
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.my_options_menu, menu);
+        MenuItem item = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) item.getActionView();
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                displayRooms(mRooms);
+                return false;
+            }
+        });
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                mRooms.clear();
+                adapter.notifyDataSetChanged();
+                searchRooms(newText);
+                return true;
+            }
+        });
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    private void searchRooms(String newText) {
+        if (isNetworkAvailable()) {
+            /* Display a toast to inform the user that we are syncing */
+            String accessToken = getActivity()
+                    .getSharedPreferences("UserPreferences", 0)
+                    .getString("accessToken", "");
+            if (accessToken.equals("")) {
+                Intent intent = new Intent(getActivity(), SplashActivity.class);
+                getActivity().startActivity(intent);
+                getActivity().finish();
+            }
+            Request request = new Request.Builder()
+                    .url("https://api.gitter.im/v1/rooms?q=" + newText)
+                    .build();
+            HttpUrl url = request.url().newBuilder()
+                    .addQueryParameter("access_token", accessToken)
+                    .build();
+            request = request.newBuilder().url(url).build();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    e.printStackTrace();
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response)
+                        throws IOException {
+                    /* Simple hack for compatibility as API 19 is required for
+                       new JSONArray */
+                    final String responseText = response.body().string();
+                    // We will move to UI Thread
+                    Thread thread = new Thread(new Runnable() {
+                        @SuppressLint("StaticFieldLeak")
+                        @Override
+                        public void run() {
+                            try {
+                                JSONObject JObject = new JSONObject(responseText);
+                                Log.i(TAG, "run: " + responseText);
+                                JSONArray JArray = JObject.getJSONArray("results");
+                                int i;
+                                for (i = 0; i < JArray.length(); i++) {
+                                    JSONObject dynamicJObject = JArray.getJSONObject(i);
+                                    String githubType = dynamicJObject.getString("githubType");
+                                    final String uId = dynamicJObject.getString("id");
+                                    String name = dynamicJObject.getString("name");
+                                    String url = dynamicJObject.getString("avatarUrl");
+                                    // userCount = 0 == user to user room since ONETWOONE doesnot have it
+                                    int userCount = 0;
+                                    if (!githubType.equals("ONETWOONE")) {
+                                        userCount = dynamicJObject.getInt("userCount");
+                                    }
+                                    int unreadItems = dynamicJObject.getInt("unreadItems");
+                                    int mentions = dynamicJObject.getInt("mentions");
+                                    Log.i(TAG, "run: " + dynamicJObject.toString());
+                                    final RoomsTable room = new RoomsTable();
+                                    room.setuId(uId);
+                                    room.setRoomName(name);
+                                    room.setUserCount(userCount);
+                                    room.setUnreadItems(unreadItems);
+                                    room.setMentions(mentions);
+                                    room.setRoomAvatar(url);
+                                    mRooms.add(room);
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } finally {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        adapter.notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    thread.start();
+                }
+            });
+            /* Prompt user to turn on internet only if we have no rooms */
+        } else {
+            Intent intent = new Intent(getActivity(), NoNetworkActivity.class);
+            intent.putExtra("calledFrom", "DashboardActivity");
+            getActivity().startActivity(intent);
+            getActivity().finish();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.preferences:
+                startActivity(new Intent(getContext(), SettingsActivity.class));
+                return true;
+            case R.id.signOut:
+                signOut();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void signOut() {
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setMessage("Are you sure you want to Sign Out?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @SuppressLint("StaticFieldLeak")
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        new AsyncTask<Void, Void, Void>() {
+
+                            @Override
+                            protected Void doInBackground(Void... voids) {
+                                messagesDatabase.clearAllTables();
+                                roomdb.clearAllTables();
+                                return null;
+                            }
+
+                            @Override
+                            protected void onPostExecute(Void aVoid) {
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.clear();
+                                editor.commit();
+                                Intent intent = new Intent(getActivity(), SplashActivity.class);
+                                startActivity(intent);
+                                getActivity().finish();
+                            }
+                        }.execute();
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
 }
