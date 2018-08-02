@@ -3,7 +3,6 @@ package com.codingblocks.chatter.models;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
-
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 
@@ -35,5 +34,8 @@ public interface RoomsDao {
 
     @Delete()
     void delete(RoomsTable roomsTable);
+
+    @Query("DELETE FROM ROOMS WHERE  uId = :uId")
+    void deleteRoom(String uId);
 
 }

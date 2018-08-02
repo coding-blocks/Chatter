@@ -43,4 +43,7 @@ public interface MessagesDao {
 
     @Delete
     void delete(MessagesTable message);
+
+    @Query("DELETE FROM messages WHERE roomId = :roomId")
+    void deleteRoomMessages(String roomId);
 }

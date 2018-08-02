@@ -13,12 +13,14 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.codingblocks.chatter.fragments.RoomsFragment;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -74,7 +76,7 @@ public class DashboardActivity extends AppCompatActivity {
                 avatarUrl.equals("")) {
             if (isNetworkAvailable()) {
                 Request request = new Request.Builder()
-                        .url("https://gitter.im/v1/user/me")
+                        .url("https://api.gitter.im/v1/user")
                         .addHeader("Accept", "application/json")
                         .addHeader("Authorization", "Bearer " + accessToken)
                         .build();
@@ -89,7 +91,10 @@ public class DashboardActivity extends AppCompatActivity {
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         try {
                             String responseText = response.body().string();
-                            JSONObject Jobject = new JSONObject(responseText);
+                            Log.i("TAG", "onResponseofUser: " + responseText);
+                            JSONArray jsonarray = new JSONArray(responseText);
+                            JSONObject Jobject = jsonarray.getJSONObject(0);
+
                             final String username = Jobject.getString("username");
                             final String idOfUser = Jobject.getString("id");
                             final String displayName = Jobject.getString("displayName");
@@ -136,10 +141,11 @@ public class DashboardActivity extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void openRoom(String id, String roomName) {
+    public void openRoom(String id, String roomName, int userCount) {
         Bundle bundle = new Bundle();
         bundle.putString("RoomId", id);
         bundle.putString("RoomName", roomName);
+        bundle.putInt("userCount", userCount);
         Intent roomIntent = new Intent(DashboardActivity.this, RoomActivity.class);
         roomIntent.putExtras(bundle);
         startActivity(roomIntent);
