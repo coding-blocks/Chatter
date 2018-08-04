@@ -141,11 +141,12 @@ public class DashboardActivity extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void openRoom(String id, String roomName, int userCount) {
+    public void openRoom(String id, String roomName, int userCount, String favourtie) {
         Bundle bundle = new Bundle();
         bundle.putString("RoomId", id);
         bundle.putString("RoomName", roomName);
         bundle.putInt("userCount", userCount);
+        bundle.putString("favourite", favourtie);
         Intent roomIntent = new Intent(DashboardActivity.this, RoomActivity.class);
         roomIntent.putExtras(bundle);
         startActivity(roomIntent);
