@@ -23,7 +23,17 @@ public class RoomsTable {
     @Nullable
     private String favourite;
 
-    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, @Nullable String favourite) {
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
+    private String topic;
+
+    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, String topic,@Nullable String favourite) {
         this.id = id;
         this.uId = uId;
         this.roomName = roomName;
@@ -36,7 +46,7 @@ public class RoomsTable {
     }
 
     @Ignore
-    public RoomsTable(){
+    public RoomsTable() {
 
     }
 
