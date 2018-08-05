@@ -187,6 +187,9 @@ public class RoomsFragment extends Fragment {
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
+                                    String topic = dynamicJObject.getString("topic");
+
+                                    Log.i(TAG, "run: " + dynamicJObject.toString());
                                     String favourite = null;
                                     if (!dynamicJObject.isNull("favourite"))
                                         favourite = (dynamicJObject.getString("favourite"));
@@ -215,6 +218,7 @@ public class RoomsFragment extends Fragment {
                                     final RoomsTable room = new RoomsTable();
                                     room.setId(nextId);
                                     room.setuId(uId);
+                                    room.setTopic(topic);
                                     room.setRoomName(name);
                                     room.setUserCount(userCount);
                                     room.setUnreadItems(unreadItems);

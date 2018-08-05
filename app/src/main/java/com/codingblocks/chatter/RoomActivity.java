@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.codingblocks.chatter.fragments.BottomSheetGroupFragment;
 import com.codingblocks.chatter.fragments.RoomFragment;
 import com.codingblocks.chatter.models.MessagesDao;
 import com.codingblocks.chatter.models.RoomsDao;
@@ -137,30 +138,32 @@ public class RoomActivity extends AppCompatActivity {
         this.menu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.my_room_options_menu, menu);
-        MenuItem item = menu.findItem(R.id.leaveRoom);
-        MenuItem fav = menu.findItem(R.id.favourite);
-        if (usercount == 2) {
-            item.setVisible(false);
-        } else
-            item.setVisible(true);
+        MenuItem item1 = menu.findItem(R.id.leaveRoom);
+        MenuItem item2 = menu.findItem(R.id.aboutRoom);
         MenuItem menuItem = menu.findItem(R.id.favourite);
-
+        if (usercount == 2) {
+            item1.setVisible(false);
+            item2.setVisible(false);
+        } else {
+            item1.setVisible(true);
+            item2.setVisible(true);
+        }
         if (status != null) {
             menuItem.setTitle("Remove from Favourites");
         } else {
             menuItem.setTitle("Add to Favourites");
         }
-
-
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()) {
             case R.id.leaveRoom:
                 leaveRoom(roomId);
+                break;
+            case R.id.aboutRoom:
+                roominfo(roomId);
                 break;
             case R.id.favourite:
                 addtofav(roomId);
@@ -170,6 +173,10 @@ public class RoomActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void roominfo(String roomId) {
+        BottomSheetGroupFragment bottomSheetFragment = new BottomSheetGroupFragment();
+        BottomSheetGroupFragment.newInstance(roomId).show(this.getSupportFragmentManager(), bottomSheetFragment.getTag());
+    }
     private void addtofav(final String roomId) {
         RequestBody requestBody;
         Request request;
@@ -237,3 +244,4 @@ public class RoomActivity extends AppCompatActivity {
     }
 
 }
+
