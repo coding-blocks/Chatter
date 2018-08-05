@@ -165,11 +165,11 @@ public class RoomActivity extends AppCompatActivity {
             case R.id.aboutRoom:
                 roominfo(roomId);
                 break;
-            case R.id.markRead:
-                markRed(roomId);
-                break;
             case R.id.favourite:
                 addtofav(roomId);
+                break;
+            case R.id.markRead:
+                markRed(roomId);
                 break;
 
         }
@@ -180,6 +180,7 @@ public class RoomActivity extends AppCompatActivity {
         BottomSheetGroupFragment bottomSheetFragment = new BottomSheetGroupFragment();
         BottomSheetGroupFragment.newInstance(roomId).show(this.getSupportFragmentManager(), bottomSheetFragment.getTag());
     }
+
     private void addtofav(final String roomId) {
         RequestBody requestBody;
         Request request;
@@ -247,9 +248,6 @@ public class RoomActivity extends AppCompatActivity {
     }
 
     private void markRed(String roomId) {
-        RequestBody requestBody = new FormBody.Builder()
-                .add("favourite", "true")
-                .build();
         final Request request = new Request.Builder()
                 .url("https://api.gitter.im/v1/"
                         + "user/"
