@@ -153,17 +153,17 @@ public class RoomActivity extends AppCompatActivity {
         } else {
             menuItem.setTitle("Add to Favourites");
         }
+
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         switch (item.getItemId()) {
             case R.id.leaveRoom:
                 leaveRoom(roomId);
-                break;
-            case R.id.markRead:
-                markRed(roomId);
                 break;
             case R.id.aboutRoom:
                 roominfo(roomId);
@@ -171,15 +171,15 @@ public class RoomActivity extends AppCompatActivity {
             case R.id.favourite:
                 addtofav(roomId);
                 break;
+            case R.id.markRead:
+                markRed(roomId);
+                break;
 
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void markRed(String roomId) {
-        RequestBody requestBody = new FormBody.Builder()
-                .add("favourite", "true")
-                .build();
         final Request request = new Request.Builder()
                 .url("https://api.gitter.im/v1/"
                         + "user/"
@@ -277,4 +277,5 @@ public class RoomActivity extends AppCompatActivity {
     }
 
 }
+
 
