@@ -9,6 +9,9 @@
         android:title="Add to favourite" />
 
     <item
+        android:id="@+id/markRead"
+        android:title="Mark all as Read" />
+    <item
         android:id="@+id/leaveRoom"
         android:title="Leave Room" />
 

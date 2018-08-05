@@ -153,11 +153,14 @@ public class RoomActivity extends AppCompatActivity {
         } else {
             menuItem.setTitle("Add to Favourites");
         }
+
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         switch (item.getItemId()) {
             case R.id.leaveRoom:
                 leaveRoom(roomId);
@@ -168,15 +171,45 @@ public class RoomActivity extends AppCompatActivity {
             case R.id.favourite:
                 addtofav(roomId);
                 break;
+            case R.id.markRead:
+                markRed(roomId);
+                break;
 
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void markRed(String roomId) {
+        final Request request = new Request.Builder()
+                .url("https://api.gitter.im/v1/"
+                        + "user/"
+                        + uid +
+                        "/rooms/"
+                        + roomId +
+                        "/unreadItems/all"
+                )
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .delete()
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+            }
+        });
+
+    }
     private void roominfo(String roomId) {
         BottomSheetGroupFragment bottomSheetFragment = new BottomSheetGroupFragment();
         BottomSheetGroupFragment.newInstance(roomId).show(this.getSupportFragmentManager(), bottomSheetFragment.getTag());
     }
+
     private void addtofav(final String roomId) {
         RequestBody requestBody;
         Request request;
@@ -244,4 +277,5 @@ public class RoomActivity extends AppCompatActivity {
     }
 
 }
+
 
