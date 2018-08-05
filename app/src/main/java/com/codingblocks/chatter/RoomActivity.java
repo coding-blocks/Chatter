@@ -35,11 +35,14 @@ public class RoomActivity extends AppCompatActivity {
     //Database
     RoomsDatabase roomdb;
     RoomsDao roomsDao;
+    private Menu menu;
+
 
     MessagesDatabase messagesDatabase;
     MessagesDao messagesDao;
     String accessToken;
     String uid;
+    String status = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +59,8 @@ public class RoomActivity extends AppCompatActivity {
         Bundle bundle = i.getExtras();
         roomId = (String) bundle.get("RoomId");
         usercount = (int) bundle.get("userCount");
-        Log.i("TAG", "onCreate: " + i.getExtras() + i.getBundleExtra("RoomId") + bundle.get("RoomId") + "userCount" + bundle.get("userCount"));
+        status = bundle.getString("favourite");
+        Log.i("TAG", "onCreate: " + status);
         RoomFragment roomFragment = new RoomFragment();
         roomFragment.setArguments(bundle);
         getSupportFragmentManager()
@@ -130,14 +134,23 @@ public class RoomActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
+        this.menu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.my_room_options_menu, menu);
         MenuItem item = menu.findItem(R.id.leaveRoom);
+        MenuItem fav = menu.findItem(R.id.favourite);
         if (usercount == 2) {
             item.setVisible(false);
         } else
             item.setVisible(true);
+        MenuItem menuItem = menu.findItem(R.id.favourite);
+
+        if (status != null) {
+            menuItem.setTitle("Remove from Favourites");
+        } else {
+            menuItem.setTitle("Add to Favourites");
+        }
+
 
         return true;
     }
@@ -152,9 +165,78 @@ public class RoomActivity extends AppCompatActivity {
             case R.id.markRead:
                 markRed(roomId);
                 break;
+            case R.id.favourite:
+                addtofav(roomId);
+                break;
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void addtofav(final String roomId) {
+        RequestBody requestBody;
+        Request request;
+        if (status == null) {
+            requestBody = new FormBody.Builder()
+                    .add("favourite", roomId)
+                    .build();
+            request = new Request.Builder()
+                    .url("https://api.gitter.im/v1/"
+                            + "user/"
+                            + uid +
+                            "/rooms/"
+                            + roomId
+                    )
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .put(requestBody)
+                    .build();
+        } else {
+            requestBody = new FormBody.Builder()
+                    .add("favourite", roomId)
+                    .build();
+            request = new Request.Builder()
+                    .url("https://api.gitter.im/v1/"
+                            + "user/"
+                            + uid +
+                            "/rooms/"
+                            + roomId
+                    )
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .delete(requestBody)
+                    .build();
+        }
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                Log.i("TAG", "onResponse: " + response.body().string());
+                if (response.isSuccessful()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            MenuItem menuItem = menu.findItem(R.id.favourite);
+                            if (status != null) {
+                                menuItem.setTitle("Add to Favourites");
+                                status = null;
+                            } else {
+                                menuItem.setTitle("Remove from Favourites");
+                                status = roomId;
+                            }
+                        }
+                    });
+
+
+                }
+            }
+        });
+
     }
 
     private void markRed(String roomId) {

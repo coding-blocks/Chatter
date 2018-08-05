@@ -4,8 +4,8 @@ package com.codingblocks.chatter.db;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
-import android.arch.persistence.room.Room;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 @Entity(tableName = "rooms")
 public class RoomsTable {
@@ -20,8 +20,10 @@ public class RoomsTable {
     private int mentions;
     private String draftMessage;
     private String roomAvatar;
+    @Nullable
+    private String favourite;
 
-    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar) {
+    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, @Nullable String favourite) {
         this.id = id;
         this.uId = uId;
         this.roomName = roomName;
@@ -30,6 +32,7 @@ public class RoomsTable {
         this.mentions = mentions;
         this.draftMessage = draftMessage;
         this.roomAvatar = roomAvatar;
+        this.favourite = favourite;
     }
 
     @Ignore
@@ -99,5 +102,14 @@ public class RoomsTable {
 
     public void setRoomAvatar(String avatar) {
         this.roomAvatar = avatar;
+    }
+
+    @Nullable
+    public String getFavourite() {
+        return favourite;
+    }
+
+    public void setFavourite(@Nullable String favourite) {
+        this.favourite = favourite;
     }
 }
