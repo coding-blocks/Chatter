@@ -176,11 +176,6 @@ public class RoomActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void roominfo(String roomId) {
-        BottomSheetGroupFragment bottomSheetFragment = new BottomSheetGroupFragment();
-        BottomSheetGroupFragment.newInstance(roomId).show(this.getSupportFragmentManager(), bottomSheetFragment.getTag());
-    }
-
     private void addtofav(final String roomId) {
         RequestBody requestBody;
         Request request;
@@ -246,6 +241,12 @@ public class RoomActivity extends AppCompatActivity {
         });
 
     }
+
+    private void roominfo(String roomId) {
+        BottomSheetGroupFragment bottomSheetFragment = new BottomSheetGroupFragment();
+        BottomSheetGroupFragment.newInstance(roomId).show(this.getSupportFragmentManager(), bottomSheetFragment.getTag());
+    }
+
 
     private void markRed(String roomId) {
         final Request request = new Request.Builder()
