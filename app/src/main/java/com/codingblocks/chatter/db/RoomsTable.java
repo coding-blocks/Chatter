@@ -5,6 +5,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 @Entity(tableName = "rooms")
 public class RoomsTable {
@@ -20,8 +21,20 @@ public class RoomsTable {
     private String draftMessage;
     private String roomAvatar;
     private boolean roomMember;
+    @Nullable
+    private String favourite;
 
-    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, boolean roomMember) {
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
+    private String topic;
+
+    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, String topic,@Nullable String favourite,boolean roomMember) {
         this.id = id;
         this.uId = uId;
         this.roomName = roomName;
@@ -31,10 +44,11 @@ public class RoomsTable {
         this.draftMessage = draftMessage;
         this.roomAvatar = roomAvatar;
         this.roomMember = roomMember;
+        this.favourite = favourite;
     }
 
     @Ignore
-    public RoomsTable(){
+    public RoomsTable() {
 
     }
 
@@ -108,5 +122,14 @@ public class RoomsTable {
 
     public void setRoomMember(boolean roomMember) {
         this.roomMember = roomMember;
+    }
+
+    @Nullable
+    public String getFavourite() {
+        return favourite;
+    }
+
+    public void setFavourite(@Nullable String favourite) {
+        this.favourite = favourite;
     }
 }

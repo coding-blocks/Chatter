@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -71,6 +72,9 @@ public class RoomsFragment extends Fragment {
 
     @BindView(R.id.recycler_view)
     public RecyclerView recyclerView;
+    @BindView(R.id.refreshlayout)
+    SwipeRefreshLayout refreshLayout;
+
 
     @SuppressLint("StaticFieldLeak")
     @Override
@@ -93,6 +97,14 @@ public class RoomsFragment extends Fragment {
         setHasOptionsMenu(true);
         sharedPreferences =
                 getActivity().getSharedPreferences("UserPreferences", 0);
+        //this is swipe to refresh the Rooms fragment layout
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                displayRooms(mRooms);
+                refreshLayout.setRefreshing(false);
+            }
+        });
 
         return view;
     }
@@ -113,20 +125,6 @@ public class RoomsFragment extends Fragment {
             getRooms(1);
 
         }
-        new AsyncTask<Void, Void, List<RoomsTable>>() {
-
-            @Override
-            protected List<RoomsTable> doInBackground(Void... voids) {
-                return dao.getAllRooms();
-            }
-
-            @Override
-            protected void onPostExecute(List<RoomsTable> notes) {
-                mRooms.clear();
-                mRooms.addAll(notes);
-            }
-        }.execute();
-
         adapter = new RoomsAdapter(rooms, getContext());
         recyclerView.setAdapter(adapter);
         new AsyncTask<Void, Void, List<RoomsTable>>() {
@@ -206,7 +204,13 @@ public class RoomsFragment extends Fragment {
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
                                     boolean roomMember = dynamicJObject.getBoolean("roomMember");
+                                    String topic = dynamicJObject.getString("topic");
+
                                     Log.i(TAG, "run: " + dynamicJObject.toString());
+                                    String favourite = null;
+                                    if (!dynamicJObject.isNull("favourite"))
+                                        favourite = (dynamicJObject.getString("favourite"));
+                                    Log.i(TAG, "run: " + favourite);
 
 //                                    // Get the current max id in the EntityName table
                                     int maxId = dao.getMax();
@@ -227,12 +231,14 @@ public class RoomsFragment extends Fragment {
                                     final RoomsTable room = new RoomsTable();
                                     room.setId(nextId);
                                     room.setuId(uId);
+                                    room.setTopic(topic);
                                     room.setRoomName(name);
                                     room.setUserCount(userCount);
                                     room.setUnreadItems(unreadItems);
                                     room.setMentions(mentions);
                                     room.setRoomAvatar(url);
                                     room.setRoomMember(roomMember);
+                                    room.setFavourite(favourite);
 //
 //                                    // Begin, copy and commit
 ////                                    realm.beginTransaction();
