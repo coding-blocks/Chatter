@@ -62,7 +62,18 @@ public class RoomsFragment extends Fragment {
     SharedPreferences sharedPreferences;
     RoomsDatabase roomdb;
     MessagesDatabase messagesDatabase;
+    String filter;
 
+    public static RoomsFragment newInstance(String filter) {
+
+        RoomsFragment bottomSheetFragment = new RoomsFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString("filter", filter);
+        bottomSheetFragment.setArguments(bundle);
+
+        return bottomSheetFragment;
+
+    }
 
     public RoomsFragment() {
         // Required empty public constructor
@@ -83,7 +94,7 @@ public class RoomsFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_rooms, container, false);
         ButterKnife.bind(this, view);
-
+        filter = getArguments().getString("filter");
         db = RoomsDatabase.getInstance(getContext());
         dao = db.roomsDao();
         //for deleting db on SignOut
@@ -93,7 +104,7 @@ public class RoomsFragment extends Fragment {
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        displayRooms(mRooms);
+        displayRooms(mRooms, filter);
         setHasOptionsMenu(true);
         sharedPreferences =
                 getActivity().getSharedPreferences("UserPreferences", 0);
@@ -101,7 +112,7 @@ public class RoomsFragment extends Fragment {
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                displayRooms(mRooms);
+                displayRooms(mRooms, filter);
                 refreshLayout.setRefreshing(false);
             }
         });
@@ -118,28 +129,38 @@ public class RoomsFragment extends Fragment {
     }
 
     @SuppressLint("StaticFieldLeak")
-    public void displayRooms(List<RoomsTable> rooms) {
+    public void displayRooms(List<RoomsTable> rooms, final String filter) {
         /* No rooms, let's get them first */
         if (rooms.size() == 0) {
             /* Internet is needed for sure to get the rooms */
             getRooms(1);
 
         }
-        adapter = new RoomsAdapter(rooms, getContext());
-        recyclerView.setAdapter(adapter);
         new AsyncTask<Void, Void, List<RoomsTable>>() {
 
             @Override
             protected List<RoomsTable> doInBackground(Void... voids) {
-                return dao.getAllRooms();
+                Log.i(TAG, "doInBackground: " + filter);
+                switch (filter) {
+                    case "All":
+                        return dao.getAllRooms();
+                    case "oneToone":
+                        return dao.getPeopleRooms();
+                    default:
+                        return dao.getAllRooms();
+                }
             }
 
             @Override
             protected void onPostExecute(List<RoomsTable> notes) {
+                Log.i(TAG, "onPostExecute: " + notes.get(0).getRoomName());
                 mRooms.clear();
                 mRooms.addAll(notes);
             }
         }.execute();
+
+        adapter = new RoomsAdapter(rooms, getContext());
+        recyclerView.setAdapter(adapter);
 
         /* Get rooms if network is available
            [we have old ones but checking for updates] */
@@ -428,56 +449,4 @@ public class RoomsFragment extends Fragment {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.preferences:
-                startActivity(new Intent(getContext(), SettingsActivity.class));
-                return true;
-            case R.id.signOut:
-                signOut();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void signOut() {
-        AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setMessage("Are you sure you want to Sign Out?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @SuppressLint("StaticFieldLeak")
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        new AsyncTask<Void, Void, Void>() {
-
-                            @Override
-                            protected Void doInBackground(Void... voids) {
-                                messagesDatabase.clearAllTables();
-                                roomdb.clearAllTables();
-                                return null;
-                            }
-
-                            @Override
-                            protected void onPostExecute(Void aVoid) {
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.clear();
-                                editor.commit();
-                                Intent intent = new Intent(getActivity(), SplashActivity.class);
-                                startActivity(intent);
-                                getActivity().finish();
-                            }
-                        }.execute();
-
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .show();
-    }
 }

@@ -7,11 +7,22 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.codingblocks.chatter.fragments.RoomsFragment;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,12 +37,19 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class DashboardActivity extends AppCompatActivity {
+public class DashboardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
 
     OkHttpClient client = new OkHttpClient();
     SharedPreferences sharedPreferences;
     //Database
+    RoomsDatabase roomdb;
+    MessagesDatabase messagesDatabase;
+
+    private View navHeader;
+    private ImageView imgNavHeaderBg, imgProfile;
+    private TextView txtName, txtDisplayName;
+    String username, accessToken, idOfUser, displayName, userUrl, avatarUrl;
 
 
     @Override
@@ -39,18 +57,36 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
         ButterKnife.bind(this);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.app_name, R.string.app_name);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        // Navigation view header
+        navHeader = navigationView.getHeaderView(0);
+        txtName = navHeader.findViewById(R.id.name);
+        txtDisplayName = navHeader.findViewById(R.id.displayName);
+        imgNavHeaderBg = navHeader.findViewById(R.id.img_header_bg);
+        imgProfile = navHeader.findViewById(R.id.img_profile);
+        //for deleting db on SignOut
+        roomdb = RoomsDatabase.getInstance(this);
+        messagesDatabase = MessagesDatabase.getInstance(this);
 
         /* Some usefull things */
         sharedPreferences =
                 this.getSharedPreferences("UserPreferences", 0);
 
         /* Useful data from Shared Preferences */
-        String accessToken = sharedPreferences.getString("accessToken", "");
-        String username = sharedPreferences.getString("username", "");
-        String idOfUser = sharedPreferences.getString("idOfUser", "");
-        String displayName = sharedPreferences.getString("displayName", "");
-        String userUrl = sharedPreferences.getString("userUrl", "");
-        String avatarUrl = sharedPreferences.getString("avatarUrl", "");
+        accessToken = sharedPreferences.getString("accessToken", "");
+        username = sharedPreferences.getString("username", "");
+        idOfUser = sharedPreferences.getString("idOfUser", "");
+        displayName = sharedPreferences.getString("displayName", "");
+        userUrl = sharedPreferences.getString("userUrl", "");
+        avatarUrl = sharedPreferences.getString("avatarUrl", "");
 
         /* Get the data from the Gitter API if they are not avaiable if
            internet is also not available redirect to NoNetwirk Activity */
@@ -112,9 +148,14 @@ public class DashboardActivity extends AppCompatActivity {
                 DashboardActivity.this.startActivity(intent);
                 DashboardActivity.this.finish();
             }
+        } else {
+            txtName.setText(username);
+            txtDisplayName.setText(displayName);
+            Picasso.get().load(avatarUrl).into(imgProfile);
         }
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_holder, new RoomsFragment());
+        RoomsFragment roomsFragment = new RoomsFragment();
+        transaction.replace(R.id.fragment_holder, RoomsFragment.newInstance("All"), "Room");
         transaction.commit();
 
     }
@@ -139,5 +180,76 @@ public class DashboardActivity extends AppCompatActivity {
 
         }
 
+    private void signOut() {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to Sign Out?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @SuppressLint("StaticFieldLeak")
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
+                        new AsyncTask<Void, Void, Void>() {
+
+                            @Override
+                            protected Void doInBackground(Void... voids) {
+                                messagesDatabase.clearAllTables();
+                                roomdb.clearAllTables();
+                                return null;
+                            }
+
+                            @Override
+                            protected void onPostExecute(Void aVoid) {
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.clear();
+                                editor.commit();
+                                Intent intent = new Intent(DashboardActivity.this, SplashActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }
+                        }.execute();
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.nav_all_conv) {
+            changeFragment("all");
+        } else if (id == R.id.nav_people) {
+            changeFragment("oneToone");
+        } else if (id == R.id.nav_signOut)
+            signOut();
+        else if (id == R.id.nav_prefences)
+            startActivity(new Intent(DashboardActivity.this, SettingsActivity.class));
+
+        return false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    void changeFragment(String filter) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_holder, RoomsFragment.newInstance(filter), "Room");
+        transaction.commit();
+        onBackPressed();
+    }
+}

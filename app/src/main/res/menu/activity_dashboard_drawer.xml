@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group
+        android:id="@+id/lists"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_all_conv"
+            android:icon="@drawable/home"
+            android:title="All Conversation" />
+        <item
+            android:id="@+id/nav_people"
+            android:icon="@drawable/people"
+            android:title="People" />
+
+    </group>
+
+    <item android:title="Favourties">
+        <menu>
+            <group
+                android:id="@+id/favourites"
+                android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_favourite"
+                    android:title="Favourite" />
+
+            </group>
+        </menu>
+    </item>
+    <group
+        android:id="@+id/features"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_prefences"
+            android:icon="@drawable/settings"
+            android:title="Preferences" />
+        <item
+            android:id="@+id/nav_signOut"
+            android:icon="@drawable/log_out"
+            android:title="Sign Out" />
+
+    </group>
+
+</menu>

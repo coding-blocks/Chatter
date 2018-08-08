@@ -310,12 +310,12 @@ public class RoomFragment extends Fragment {
                         }
                         if (i == 0) {
                             Looper.prepare();
-
-                            Toast.makeText(
-                                    getActivity(),
-                                    "There seems to be no rooms, please try again later",
-                                    Toast.LENGTH_SHORT
-                            ).show();
+                            if (getActivity() != null)
+                                Toast.makeText(
+                                        getActivity(),
+                                        "There seems to be no rooms, please try again later",
+                                        Toast.LENGTH_SHORT
+                                ).show();
                             Looper.loop();
 
                         }
