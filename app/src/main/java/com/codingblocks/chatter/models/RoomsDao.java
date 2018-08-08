@@ -41,4 +41,6 @@ public interface RoomsDao {
     @Query("DELETE FROM ROOMS WHERE  uId = :uId")
     void deleteRoom(String uId);
 
+
+
 }

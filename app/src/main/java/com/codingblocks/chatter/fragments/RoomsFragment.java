@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -70,6 +71,9 @@ public class RoomsFragment extends Fragment {
 
     @BindView(R.id.recycler_view)
     public RecyclerView recyclerView;
+    @BindView(R.id.refreshlayout)
+    SwipeRefreshLayout refreshLayout;
+
 
     @SuppressLint("StaticFieldLeak")
     @Override
@@ -86,6 +90,15 @@ public class RoomsFragment extends Fragment {
                 new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         displayRooms(mRooms, filter);
+
+        //this is swipe to refresh the Rooms fragment layout
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                displayRooms(mRooms, filter);
+                refreshLayout.setRefreshing(false);
+            }
+        });
 
         return view;
     }
@@ -194,7 +207,13 @@ public class RoomsFragment extends Fragment {
                                     }
                                     int unreadItems = dynamicJObject.getInt("unreadItems");
                                     int mentions = dynamicJObject.getInt("mentions");
+                                    String topic = dynamicJObject.getString("topic");
+
                                     Log.i(TAG, "run: " + dynamicJObject.toString());
+                                    String favourite = null;
+                                    if (!dynamicJObject.isNull("favourite"))
+                                        favourite = (dynamicJObject.getString("favourite"));
+                                    Log.i(TAG, "run: " + favourite);
 
 //
 
@@ -219,11 +238,13 @@ public class RoomsFragment extends Fragment {
                                     final RoomsTable room = new RoomsTable();
                                     room.setId(nextId);
                                     room.setuId(uId);
+                                    room.setTopic(topic);
                                     room.setRoomName(name);
                                     room.setUserCount(userCount);
                                     room.setUnreadItems(unreadItems);
                                     room.setMentions(mentions);
                                     room.setRoomAvatar(url);
+                                    room.setFavourite(favourite);
 //
 //                                    // Begin, copy and commit
 ////                                    realm.beginTransaction();
