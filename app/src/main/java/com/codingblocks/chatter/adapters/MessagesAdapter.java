@@ -9,11 +9,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import java.util.List;
 
-import com.codingblocks.chatter.db.MessagesTable;
 import com.codingblocks.chatter.R;
+import com.codingblocks.chatter.db.MessagesTable;
 import com.squareup.picasso.Picasso;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> {
 
@@ -55,20 +60,27 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         myViewHolder.username.setText(message.getDisplayName());
         // A timestamp looks like this 2014-03-25T11:51:32.289Z
         String timestamp = message.getTimestamp();
-        Log.e("TAG", "onBindViewHolder: " + message.getText());
         if (!timestamp.equals("sending")) {
-            timestamp = timestamp.substring(0, 10)+"  "+ timestamp.substring(11,16);
             //= 11:51 2014-03-25
+            try {
+
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+                Date date = dateFormat.parse("2017-04-26T20:55:00.000Z");//You will get date object relative to server/client timezone wherever it is parsed
+                DateFormat formatter = new SimpleDateFormat("MMM dd yyyy  HH:mm"); //If you need time just put specific format for time like 'HH:mm:ss'
+                String dateStr = formatter.format(date);
+                myViewHolder.time.setText(dateStr); // or sending
+
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
         Linkify.addLinks(myViewHolder.message, Linkify.WEB_URLS);
         Picasso.get().load(message.getUserAvater()).into(myViewHolder.userImage);
-        myViewHolder.time.setText(timestamp); // or sending
         myViewHolder.message.setText(message.getText());
     }
 
     @Override
     public int getItemCount() {
-        Log.e("TAG", "getItemCount: " + messages.size());
         return messages.size();
     }
 }
