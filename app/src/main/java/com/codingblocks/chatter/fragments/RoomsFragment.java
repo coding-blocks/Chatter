@@ -153,7 +153,6 @@ public class RoomsFragment extends Fragment {
 
             @Override
             protected void onPostExecute(List<RoomsTable> notes) {
-                Log.i(TAG, "onPostExecute: " + notes.get(0).getRoomName());
                 mRooms.clear();
                 mRooms.addAll(notes);
             }
@@ -339,7 +338,7 @@ public class RoomsFragment extends Fragment {
         searchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
-                displayRooms(mRooms);
+                displayRooms(mRooms,filter);
                 return false;
             }
         });

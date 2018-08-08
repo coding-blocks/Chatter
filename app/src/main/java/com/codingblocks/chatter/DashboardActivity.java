@@ -1,10 +1,13 @@
 package com.codingblocks.chatter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -168,17 +171,17 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     }
 
     public void openRoom(String id, String roomName, int userCount, String favourtie, boolean roomMember) {
-            Bundle bundle = new Bundle();
-            bundle.putString("RoomId", id);
-            bundle.putString("RoomName", roomName);
-            bundle.putInt("userCount", userCount);
-            bundle.putBoolean("roomMember", roomMember);
-            bundle.putString("favourite", favourtie);
-            Intent roomIntent = new Intent(DashboardActivity.this, RoomActivity.class);
-            roomIntent.putExtras(bundle);
-            startActivity(roomIntent);
+        Bundle bundle = new Bundle();
+        bundle.putString("RoomId", id);
+        bundle.putString("RoomName", roomName);
+        bundle.putInt("userCount", userCount);
+        bundle.putBoolean("roomMember", roomMember);
+        bundle.putString("favourite", favourtie);
+        Intent roomIntent = new Intent(DashboardActivity.this, RoomActivity.class);
+        roomIntent.putExtras(bundle);
+        startActivity(roomIntent);
 
-        }
+    }
 
     private void signOut() {
         AlertDialog dialog = new AlertDialog.Builder(this)
