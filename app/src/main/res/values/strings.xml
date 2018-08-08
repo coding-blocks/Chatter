@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Chatter</string>
     <string name="retry">Retry</string>
-
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="title_activity_dashboard">Dashboard</string>
     <string name="placeholdertext">PlaceholderText</string>
     <string name="sent_button">sent icon</string>

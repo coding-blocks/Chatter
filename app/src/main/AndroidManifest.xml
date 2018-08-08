@@ -32,6 +32,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".DashboardActivity"
+            android:theme="@style/AppTheme.NoActionBar"
             android:label="@string/title_activity_dashboard" />
 
         <service android:name=".AuthenticatorService">
