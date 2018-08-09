@@ -57,5 +57,5 @@
         android:paddingLeft="60dp"
         android:paddingStart="60dp"
         android:text="@string/placeholdertext"
-        android:textStyle="bold" />
+        />
 </RelativeLayout>
