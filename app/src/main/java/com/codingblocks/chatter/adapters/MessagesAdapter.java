@@ -1,6 +1,8 @@
 package com.codingblocks.chatter.adapters;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -14,9 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.codingblocks.chatter.R;
+import com.codingblocks.chatter.UserActivity;
 import com.codingblocks.chatter.db.MessagesTable;
 import com.squareup.picasso.Picasso;
 
@@ -88,7 +90,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         return messages.size();
     }
 
-    public void setClickableString(String clickableValue, String wholeValue, final String userid, TextView yourTextView, SpannableString spannableString) {
+    private void setClickableString(final String clickableValue, String wholeValue, final String userid, TextView yourTextView, SpannableString spannableString) {
         String value = wholeValue;
         int startIndex = value.indexOf(clickableValue);
         int endIndex = startIndex + clickableValue.length();
@@ -102,7 +104,12 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             @Override
             public void onClick(View widget) {
                 // do what you want with clickable value
-                Toast.makeText(context, "" + userid, Toast.LENGTH_SHORT).show();
+                Bundle bundle = new Bundle();
+                bundle.putString("userId", userid);
+                bundle.putString("userName", clickableValue);
+                Intent userIntent = new Intent(widget.getContext(), UserActivity.class);
+                userIntent.putExtras(bundle);
+                widget.getContext().startActivity(userIntent);
             }
         }, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         yourTextView.setText(spannableString);
