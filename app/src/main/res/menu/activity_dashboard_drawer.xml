@@ -27,6 +27,7 @@
         </menu>
     </item>
     <group
+        android:menuCategory="system"
         android:id="@+id/features"
         android:checkableBehavior="single">
         <item
