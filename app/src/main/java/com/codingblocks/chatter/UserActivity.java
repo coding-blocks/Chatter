@@ -1,16 +1,23 @@
 package com.codingblocks.chatter;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.codingblocks.chatter.db.RoomsTable;
+import com.codingblocks.chatter.models.RoomsDao;
+import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,8 +48,12 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
     Button emailbtn;
     @BindView(R.id.websitebtn)
     Button websitebtn;
+    @BindView(R.id.chatbtn)
+    Button chatbtn;
     @BindView(R.id.profilebtn)
     Button profilebtn;
+    @BindView(R.id.userImageView)
+    ImageView imageView;
 
 
     private OkHttpClient client = new OkHttpClient();
@@ -51,7 +62,14 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
     String email;
     String website;
     String profile;
+    String displayName;
+    String imgurl;
+    RoomsDao roomsDao;
+    RoomsDatabase roomdb;
+    RoomsTable userRoom;
 
+
+    @SuppressLint("StaticFieldLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +92,17 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                 .addHeader("Accept", "application/json")
                 .addHeader("Authorization", "Bearer " + accessToken)
                 .build();
+        roomdb = RoomsDatabase.getInstance(this);
+        roomsDao = roomdb.roomsDao();
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                userRoom = roomsDao.getRoomWithuId(userId);
+                return null;
+            }
+        };
+
+
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -84,9 +113,8 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
             public void onResponse(Call call, Response response) throws IOException {
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    Log.i("TAG", "onResponse: " + jsonObject.toString());
                     final String username = jsonObject.getString("username");
-                    final String displayName = jsonObject.getString("displayName");
+                    displayName = jsonObject.getString("displayName");
                     final String location = jsonObject.getString("location");
                     email = jsonObject.getString("email");
                     website = jsonObject.getString("website");
@@ -96,7 +124,6 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                     final String repos = github.getString("public_repos");
                     final String followers = github.getString("followers");
                     final String following = github.getString("following");
-                    Log.i("TAG", "UseronResponse: " + username + displayName + location + email + website + profile + company + github);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -114,8 +141,46 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                     profilebtn.setOnClickListener(UserActivity.this);
                     websitebtn.setOnClickListener(UserActivity.this);
                     emailbtn.setOnClickListener(UserActivity.this);
+                    chatbtn.setOnClickListener(UserActivity.this);
+
                 }
 
+            }
+        });
+        //hack to get user profile picture
+        Request userrequest = new Request.Builder()
+                .url("https://api.gitter.im/v1/"
+                        + "user?q=" +
+                        userName
+                        +
+                        "&limit=1&type=gitter")
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .build();
+        client.newCall(userrequest).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                try {
+                    JSONObject JObject = new JSONObject(response.body().string());
+                    JSONArray JArray = JObject.getJSONArray("results");
+                    JSONObject jsonObject = JArray.getJSONObject(0);
+                    imgurl = jsonObject.getString("avatarUrl");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } finally {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Picasso.get().load(imgurl).into(imageView);
+
+                        }
+                    });
+                }
             }
         });
     }
@@ -156,9 +221,28 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                 i.setData(a);
                 startActivity(i);
                 break;
+            case R.id.chatbtn:
+                openRoom();
+                break;
 
         }
 
+
+    }
+
+    private void openRoom() {
+        String favourite = null;
+        if (userRoom != null && userRoom.getFavourite() != null) {
+            favourite = userRoom.getFavourite();
+        }
+        Bundle bundle = new Bundle();
+        bundle.putString("RoomId", userId);
+        bundle.putString("RoomName", displayName);
+        bundle.putInt("userCount", 2);
+        bundle.putString("favourite", favourite);
+        Intent roomIntent = new Intent(this, RoomActivity.class);
+        roomIntent.putExtras(bundle);
+        startActivity(roomIntent);
 
     }
 }

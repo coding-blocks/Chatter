@@ -4,15 +4,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="20dp"
     tools:context=".UserActivity">
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/roundedImageView"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="5dp"
+        app:cardCornerRadius="8dp">
+
+        <ImageView
+            android:id="@+id/userImageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:scaleType="centerCrop" />
+    </android.support.v7.widget.CardView>
 
     <TextView
         android:id="@+id/displayName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
+        android:layout_below="@id/roundedImageView"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="42dp"
         android:textColor="#000"
         android:textSize="32sp"
         android:textStyle="bold" />
@@ -23,7 +39,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/displayName"
         android:layout_centerHorizontal="true"
-        android:text=""
         android:textSize="20sp" />
 
     <TextView
@@ -91,10 +106,10 @@
         android:id="@+id/imageView"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_alignParentTop="true"
+        android:layout_below="@id/followingTextView"
         android:layout_marginLeft="20dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="206dp"
+        android:layout_marginTop="30dp"
         app:srcCompat="@drawable/home" />
 
     <TextView
@@ -126,10 +141,10 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/profilebtn"
         android:layout_centerHorizontal="true"
+        android:layout_marginLeft="20dp"
         android:layout_marginStart="20dp"
         android:layout_toRightOf="@id/profilebtn"
-        android:text="Website"
-        android:layout_marginLeft="20dp" />
+        android:text="Website" />
 
     <Button
         android:id="@+id/profilebtn"
@@ -137,8 +152,17 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/locationTextView"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="10dp"
         android:text="Profile" />
+
+    <Button
+        android:id="@+id/chatbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/profilebtn"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="Chat" />
 
 
 </RelativeLayout>
