@@ -29,9 +29,9 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
 
         public MyViewHolder(View view) {
             super(view);
-            roomName = (TextView) view.findViewById(R.id.room_name);
-            roomUnread = (TextView) view.findViewById(R.id.room_unread);
-            avatarImage = (ImageView) view.findViewById(R.id.avatar);
+            roomName = view.findViewById(R.id.room_name);
+            roomUnread = view.findViewById(R.id.room_unread);
+            avatarImage = view.findViewById(R.id.avatar);
         }
     }
 
@@ -68,11 +68,13 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
         final String roomName = room.getRoomName();
         final int userCount = room.getUserCount();
         final String favourtie = room.getFavourite();
+        final boolean roomMember = room.isRoomMember();
+
         myViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ((DashboardActivity) myViewHolder.itemView.getContext())
-                        .openRoom(roomId, roomName, userCount,favourtie);
+                        .openRoom(roomId, roomName, userCount,favourtie,roomMember);
             }
         });
     }

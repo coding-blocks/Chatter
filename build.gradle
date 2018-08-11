@@ -11,6 +11,10 @@ buildscript {
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+        // For Play Publisher plugin
+        classpath 'com.github.triplet.gradle:play-publisher:1.2.0'
+        // For Android versioning
+        classpath 'org.moallemi.gradle.advanced-build-version:gradle-plugin:1.6.0'
         // I know that but sorry, Realm db docs want you to do so
         classpath "io.realm:realm-gradle-plugin:3.4.0"
     }

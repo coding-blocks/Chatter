@@ -1,5 +1,24 @@
+import org.moallemi.gradle.internal.VersionCodeType
+
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
+apply plugin: 'com.github.triplet.play'
+apply plugin: 'org.moallemi.advanced-build-version'
+advancedVersioning {
+    nameOptions {
+        versionMajor 2
+        versionMinor 0
+        versionPatch 0
+    }
+    codeOptions {
+        versionCodeType VersionCodeType.AUTO_INCREMENT_DATE
+        dependsOnTasks 'release' // defaultValue
+    }
+    outputOptions {
+        renameOutput true
+        nameFormat '${appName}-${buildType}-${versionName}'
+    }
+}
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
@@ -7,18 +26,24 @@ android {
         applicationId "com.codingblocks.chatter"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 11
-        versionName "0.1.1"
+        versionCode advancedVersioning.versionCode
+        versionName advancedVersioning.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
+    signingConfigs {
+        release {
+        }
+    }
     buildTypes {
         debug {
+            testCoverageEnabled true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
-            minifyEnabled true
+            minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -52,4 +77,22 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation "android.arch.persistence.room:runtime:1.1.1"
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
+    implementation 'com.google.code.gson:gson:2.6.2'
+
 }
+
+play {
+    //track can be set to production,alpha or beta
+    jsonFile = file('../keys/api-keys.json')
+    track = 'production'
+}
+
+def props = new Properties()
+
+props.load(new FileInputStream(rootProject.file("keys/release.properties")))
+
+android.signingConfigs.release.storeFile rootProject.file(props.keyStore)
+android.signingConfigs.release.storePassword props.keyStorePassword
+android.signingConfigs.release.keyAlias props.keyAlias
+android.signingConfigs.release.keyPassword props.keyAliasPassword
+

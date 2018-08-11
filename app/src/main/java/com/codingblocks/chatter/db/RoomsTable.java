@@ -20,6 +20,7 @@ public class RoomsTable {
     private int mentions;
     private String draftMessage;
     private String roomAvatar;
+    private boolean roomMember;
     @Nullable
     private String favourite;
 
@@ -33,7 +34,7 @@ public class RoomsTable {
 
     private String topic;
 
-    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, String topic,@Nullable String favourite) {
+    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, String topic,@Nullable String favourite,boolean roomMember) {
         this.id = id;
         this.uId = uId;
         this.roomName = roomName;
@@ -42,6 +43,7 @@ public class RoomsTable {
         this.mentions = mentions;
         this.draftMessage = draftMessage;
         this.roomAvatar = roomAvatar;
+        this.roomMember = roomMember;
         this.favourite = favourite;
     }
 
@@ -112,6 +114,14 @@ public class RoomsTable {
 
     public void setRoomAvatar(String avatar) {
         this.roomAvatar = avatar;
+    }
+
+    public boolean isRoomMember() {
+        return roomMember;
+    }
+
+    public void setRoomMember(boolean roomMember) {
+        this.roomMember = roomMember;
     }
 
     @Nullable

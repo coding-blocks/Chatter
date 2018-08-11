@@ -19,3 +19,20 @@ Screenshots :
 
 <img src="https://user-images.githubusercontent.com/31950172/40463978-efc9de48-5f35-11e8-90c7-6b6f3bb20894.png" width=300><img src="https://user-images.githubusercontent.com/31950172/40463979-f01303b6-5f35-11e8-90a8-2e38f8e41e47.png" width=300>
 
+ ### Automating Publishing to the Play Store
+ 
+    -The first APK or App Bundle needs to be uploaded via the Google Play Console because registering the app with the Play Store cannot be done using the Play Developer API.
+    -To use this plugin, you must create a service account with access to the Play Developer API. Once that's done, you'll need to grant the following permissions to your service account for this plugin to work (go to Settings -> Developer account -> API access -> Service Accounts).
+    -Once done download your PKCS12 key or json key somewhere and the location of key in the build.gradle file in the play block
+    -Then run one of the following commands:
+    | Command | Description |
+   | ------------- | ------------- |
+   | 'publishApkRelease'| Uploads the APK and the summary of recent changes. |
+   | 'publishListingRelease'| Uploads the descriptions and images for the Play Store listing.|
+   | 'publishRelease'| Uploads everything.|
+   | 'bootstrapReleasePlayResources'| Fetch data from the Play Store & bootstrap the required files/folders.|
+                                 
+You can now type the following gradle commands such as the following:
+ bash
+./gradlew publishApkRelease
+

@@ -30,6 +30,9 @@ public interface RoomsDao {
     @Query("SELECT * FROM rooms WHERE userCount = 2 ORDER BY id DESC")
     List<RoomsTable> getPeopleRooms();
 
+    @Query("SELECT * FROM rooms WHERE roomName = :name ")
+    RoomsTable getRoomWithName(String name);
+
 
     //Get the current max id
     @Query("SELECT MAX(id) FROM rooms")
@@ -40,7 +43,6 @@ public interface RoomsDao {
 
     @Query("DELETE FROM ROOMS WHERE  uId = :uId")
     void deleteRoom(String uId);
-
 
 
 }
