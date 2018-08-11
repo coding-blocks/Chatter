@@ -1,12 +1,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    tools:context="com.codingblocks.chatter.fragments.RoomFragment"
-    android:fitsSystemWindows="true"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context="com.codingblocks.chatter.fragments.RoomFragment">
 
     <ImageButton
         android:id="@+id/sendButton"
@@ -16,23 +17,23 @@
         android:layout_alignParentRight="true"
         android:layout_below="@+id/recycler_view"
         android:layout_gravity="bottom|right"
-        android:overScrollMode="never"
         android:layout_marginRight="5dp"
         android:background="@drawable/ic_menu_send"
-        android:contentDescription="@string/sent_button" />
+        android:contentDescription="@string/sent_button"
+        android:overScrollMode="never" />
 
     <EditText
         android:id="@+id/inputMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="50dp"
         android:ems="10"
         android:fitsSystemWindows="true"
-        android:inputType="textMultiLine"
         android:hint="@string/type_in_placeholder"
+        android:inputType="textMultiLine"
         android:textColor="#444" />
 
     <android.support.v7.widget.RecyclerView
@@ -40,8 +41,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/inputMessage"
-        android:scrollbars="vertical">
+        android:scrollbars="vertical" />
 
-    </android.support.v7.widget.RecyclerView>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/joinRoom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="50dp"
+        android:visibility="gone"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </RelativeLayout>

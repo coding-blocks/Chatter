@@ -170,11 +170,12 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void openRoom(String id, String roomName, int userCount, String favourtie) {
+    public void openRoom(String id, String roomName, int userCount, String favourtie, boolean roomMember) {
         Bundle bundle = new Bundle();
         bundle.putString("RoomId", id);
         bundle.putString("RoomName", roomName);
         bundle.putInt("userCount", userCount);
+        bundle.putBoolean("roomMember", roomMember);
         bundle.putString("favourite", favourtie);
         Intent roomIntent = new Intent(DashboardActivity.this, RoomActivity.class);
         roomIntent.putExtras(bundle);
