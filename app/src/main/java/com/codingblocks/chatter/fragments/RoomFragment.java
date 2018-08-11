@@ -28,6 +28,7 @@ import com.codingblocks.chatter.R;
 import com.codingblocks.chatter.RoomsDatabase;
 import com.codingblocks.chatter.SplashActivity;
 import com.codingblocks.chatter.adapters.MessagesAdapter;
+import com.codingblocks.chatter.db.Mentions;
 import com.codingblocks.chatter.db.MessagesTable;
 import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.models.MessagesDao;
@@ -223,7 +224,6 @@ public class RoomFragment extends Fragment {
                         int i;
                         for (i = 0; i < JArray.length(); i++) {
                             JSONObject dynamicJObject = JArray.getJSONObject(i);
-                            Log.d("TAG access", "onResponse: " + dynamicJObject.getString("text"));
                             String uId = dynamicJObject.getString("id");
                             String text = dynamicJObject.getString("text");
                             String timestamp = dynamicJObject.getString("sent");
@@ -232,6 +232,22 @@ public class RoomFragment extends Fragment {
                             String displayName = userObject.getString("displayName");
                             String username = userObject.getString("username");
                             String avatarUrl = userObject.getString("avatarUrlMedium");
+                            List<Mentions> mentionId = new ArrayList<>();
+                            JSONObject mentions = null;
+                            if (!dynamicJObject.isNull("mentions")) {
+                                if (dynamicJObject.getString("mentions").length() > 2) {
+                                    final String mentionsText = "{\"mentions\":" + dynamicJObject.getString("mentions") + "}";
+                                    mentions = new JSONObject(mentionsText);
+                                    JSONArray mentionsArray = mentions.getJSONArray("mentions");
+                                    for (int j = 0; j < mentionsArray.length(); j++) {
+                                        JSONObject mentionObjects = mentionsArray.getJSONObject(j);
+                                        String id = mentionObjects.getString("userId");
+                                        String screenName = mentionObjects.getString("screenName");
+                                        mentionId.add(new Mentions(id, screenName));
+                                    }
+                                }
+                            }
+
 
                             final MessagesTable message = new MessagesTable();
 //                            message.setId(nextId);
@@ -244,6 +260,7 @@ public class RoomFragment extends Fragment {
                             message.setRoomId(roomId);
                             message.setUsername(username);
                             message.setUserAvater(avatarUrl);
+                            message.setMentionsIds(mentionId);
                             messagesTableList.add(message);
 
                         }

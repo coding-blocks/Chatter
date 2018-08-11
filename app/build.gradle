@@ -77,6 +77,8 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation "android.arch.persistence.room:runtime:1.1.1"
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
+    implementation 'com.google.code.gson:gson:2.6.2'
+
 }
 
 play {

@@ -1,5 +1,7 @@
 package com.codingblocks.chatter.adapters;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -8,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import com.codingblocks.chatter.R;
+import com.codingblocks.chatter.UserActivity;
 import com.codingblocks.chatter.db.Users;
 import com.squareup.picasso.Picasso;
 import java.util.List;
@@ -28,9 +31,20 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.MyViewHolder
     }
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        Users users = mUsers.get(position);
+        final Users users = mUsers.get(position);
         Log.i("TAG", "onBindViewHolder: " + mUsers.size());
         Picasso.get().load(users.getUrl()).into(holder.userImage);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle bundle = new Bundle();
+                bundle.putString("userId", users.getId());
+                bundle.putString("userName", users.getUsername());
+                Intent userIntent = new Intent(v.getContext(), UserActivity.class);
+                userIntent.putExtras(bundle);
+                v.getContext().startActivity(userIntent);
+            }
+        });
     }
     @Override
     public int getItemCount() {
