@@ -28,8 +28,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class UserActivity extends AppCompatActivity implements View.OnClickListener {
@@ -60,11 +62,13 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
     private OkHttpClient client = new OkHttpClient();
     private String userId;
     private String userName;
+    String roomId;
     String email;
     String website;
     String profile;
     String displayName;
     String imgurl;
+    String accessToken;
     RoomsDao roomsDao;
     RoomsDatabase roomdb;
     RoomsTable userRoom;
@@ -83,7 +87,7 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         setTitle(userName);
-        String accessToken = this
+        accessToken = this
                 .getSharedPreferences("UserPreferences", 0)
                 .getString("accessToken", "");
         Request request = new Request.Builder()
@@ -138,9 +142,6 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected void onPostExecute(Void aVoid) {
-                            if (userRoom == null) {
-                                chatbtn.setVisibility(View.GONE);
-                            }
                             super.onPostExecute(aVoid);
                         }
 
@@ -240,18 +241,50 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void openRoom() {
-        String favourite = null;
-        if (userRoom != null && userRoom.getFavourite() != null) {
-            favourite = userRoom.getFavourite();
-        }
-        Bundle bundle = new Bundle();
-        bundle.putString("RoomId", userRoom.getuId());
+        final Bundle bundle = new Bundle();
+        final Intent roomIntent = new Intent(this, RoomActivity.class);
         bundle.putString("RoomName", displayName);
         bundle.putInt("userCount", 2);
-        bundle.putString("favourite", favourite);
-        Intent roomIntent = new Intent(this, RoomActivity.class);
-        roomIntent.putExtras(bundle);
-        startActivity(roomIntent);
+
+        if (userRoom != null && userRoom.getFavourite() != null) {
+            bundle.putString("RoomId", userRoom.getuId());
+            bundle.putString("favourite", userRoom.getFavourite());
+            roomIntent.putExtras(bundle);
+            startActivity(roomIntent);
+        } else {
+            final RequestBody requestBody = new FormBody.Builder()
+                    .add("uri", userName)
+                    .build();
+            Request joinRoomByUsername = new Request.Builder()
+                    .url("https://api.gitter.im/v1/"
+                            + "rooms")
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .post(requestBody)
+                    .build();
+            client.newCall(joinRoomByUsername).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response.body().toString());
+                        roomId = jsonObject.getString("id");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } finally {
+                        bundle.putString("RoomId", roomId);
+                        bundle.putString("favourite", null);
+                        roomIntent.putExtras(bundle);
+                        startActivity(roomIntent);
+                    }
+                }
+            });
+        }
+
 
     }
 }
