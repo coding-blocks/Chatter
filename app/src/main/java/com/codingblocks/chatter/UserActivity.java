@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -94,14 +95,6 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                 .build();
         roomdb = RoomsDatabase.getInstance(this);
         roomsDao = roomdb.roomsDao();
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                userRoom = roomsDao.getRoomWithuId(userId);
-                return null;
-            }
-        };
-
 
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -142,6 +135,22 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                     websitebtn.setOnClickListener(UserActivity.this);
                     emailbtn.setOnClickListener(UserActivity.this);
                     chatbtn.setOnClickListener(UserActivity.this);
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            if (userRoom == null) {
+                                chatbtn.setVisibility(View.GONE);
+                            }
+                            super.onPostExecute(aVoid);
+                        }
+
+                        @Override
+                        protected Void doInBackground(Void... voids) {
+                            userRoom = roomsDao.getRoomWithName(displayName);
+                            Log.i("TAG", "doInBackground: " + userRoom);
+                            return null;
+                        }
+                    }.execute();
 
                 }
 
@@ -236,7 +245,7 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
             favourite = userRoom.getFavourite();
         }
         Bundle bundle = new Bundle();
-        bundle.putString("RoomId", userId);
+        bundle.putString("RoomId", userRoom.getuId());
         bundle.putString("RoomName", displayName);
         bundle.putInt("userCount", 2);
         bundle.putString("favourite", favourite);
