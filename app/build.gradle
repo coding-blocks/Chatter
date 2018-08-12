@@ -7,8 +7,8 @@ apply plugin: 'org.moallemi.advanced-build-version'
 advancedVersioning {
     nameOptions {
         versionMajor 2
-        versionMinor 0
-        versionPatch 1
+        versionMinor 1
+        versionPatch 0
     }
     codeOptions {
         versionCodeType VersionCodeType.AUTO_INCREMENT_DATE
