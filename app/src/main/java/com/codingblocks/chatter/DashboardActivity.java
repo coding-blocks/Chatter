@@ -19,11 +19,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.fragments.RoomsFragment;
 import com.squareup.picasso.Picasso;
 
@@ -32,6 +35,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import okhttp3.Call;
@@ -53,6 +58,9 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     private ImageView imgNavHeaderBg, imgProfile;
     private TextView txtName, txtDisplayName;
     String username, accessToken, idOfUser, displayName, userUrl, avatarUrl;
+    NavigationView navigationView;
+    Menu navMenu;
+    List<RoomsTable> suggested = new ArrayList<>();
 
 
     @Override
@@ -67,7 +75,9 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                 this, drawer, toolbar, R.string.app_name, R.string.app_name);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
+        navMenu = navigationView.getMenu();
+
         navigationView.setNavigationItemSelectedListener(this);
         // Navigation view header
         navHeader = navigationView.getHeaderView(0);
@@ -160,7 +170,75 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         RoomsFragment roomsFragment = new RoomsFragment();
         transaction.replace(R.id.fragment_holder, RoomsFragment.newInstance("All"), "Room");
         transaction.commit();
+        getSuggestedRooms();
 
+    }
+
+    private void getSuggestedRooms() {
+        if (isNetworkAvailable()) {
+            Request request = new Request.Builder()
+                    .url("https://api.gitter.im/v1/"
+                            + "user/"
+                            + idOfUser +
+                            "/suggestedRooms"
+                    )
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    final String responseText = "{\"rooms\":" + response.body().string() + "}";
+
+                    try {
+                        JSONObject JObject = new JSONObject(responseText);
+                        JSONArray JArray = JObject.getJSONArray("rooms");
+                        int i;
+                        for (i = 0; i < JArray.length(); i++) {
+                            JSONObject dynamicJObject = JArray.getJSONObject(i);
+                            String githubType = dynamicJObject.getString("githubType");
+                            final String uId = dynamicJObject.getString("id");
+                            String name = dynamicJObject.getString("name");
+                            int userCount = 0;
+                            if (!githubType.equals("ONETWOONE")) {
+                                userCount = dynamicJObject.getInt("userCount");
+                            }
+
+                            String favourite = null;
+                            if (!dynamicJObject.isNull("favourite"))
+                                favourite = (dynamicJObject.getString("favourite"));
+                            final RoomsTable room = new RoomsTable();
+                            room.setuId(uId);
+                            room.setRoomName(name);
+                            room.setUserCount(userCount);
+                            room.setFavourite(favourite);
+                            suggested.add(room);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } finally {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                SubMenu topChannelMenu = navMenu.addSubMenu("Suggested Rooms");
+                                for (int i = 1; i <= 5; i++) {
+                                    topChannelMenu.add(Menu.NONE, i, Menu.NONE, suggested.get(i).getRoomName());
+                                }
+
+                            }
+                        });
+
+                    }
+
+
+                }
+            });
+        }
     }
 
     public boolean isNetworkAvailable() {
@@ -235,6 +313,9 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             signOut();
         else if (id == R.id.nav_prefences)
             startActivity(new Intent(DashboardActivity.this, SettingsActivity.class));
+        else if(id == 1 ||id == 2 ||id == 3 ||id == 4 ||id == 5){
+            openRoom(suggested.get(id).getuId(),suggested.get(id).getRoomName(),suggested.get(id).getUserCount(),suggested.get(id).getFavourite());
+        }
 
         return false;
     }
