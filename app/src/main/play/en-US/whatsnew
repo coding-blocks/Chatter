@@ -1,2 +1,5 @@
-v 2.0.1
-- fixed crash on app start
+v2.1.0
+ - add suggested rooms
+ - user profile pic
+ - add search bar
+ - message mentions clickable

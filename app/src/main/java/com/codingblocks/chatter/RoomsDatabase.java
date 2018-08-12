@@ -9,7 +9,7 @@ import android.content.Context;
 import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.models.RoomsDao;
 
-@Database(entities = {RoomsTable.class},version = 1,exportSchema = false)
+@Database(entities = {RoomsTable.class}, version = 2,exportSchema = false)
 public abstract class RoomsDatabase extends RoomDatabase {
     private static RoomsDatabase INSTANCE;
 
@@ -19,13 +19,17 @@ public abstract class RoomsDatabase extends RoomDatabase {
         if(INSTANCE == null){
             synchronized (LOCK){
                 if(INSTANCE == null){
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext()
-                            ,RoomsDatabase.class,RoomsDatabase.DB_NAME).build();
+                    INSTANCE = Room.databaseBuilder(
+                            context.getApplicationContext(),
+                            RoomsDatabase.class,RoomsDatabase.DB_NAME
+                    ).fallbackToDestructiveMigration().build();
                 }
             }
         }
         return INSTANCE;
     }
+
+
 
     public static final String DB_NAME = "rooms_db";
 
