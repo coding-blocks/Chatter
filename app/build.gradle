@@ -68,17 +68,19 @@ dependencies {
     implementation "com.android.support:recyclerview-v7:$supportLibVersion"
     // Card View Support Library
     implementation "com.android.support:cardview-v7:$supportLibVersion"
-
-
     // OkHTTP
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     // Butterknife
     implementation 'com.jakewharton:butterknife:8.8.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     //Picasso for image loading
     implementation 'com.squareup.picasso:picasso:2.71828'
+    // Room
     implementation "android.arch.persistence.room:runtime:1.1.1"
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
+    // GSON
+    implementation "com.google.code.gson:gson:2.8.2"
+    // Annotations
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'

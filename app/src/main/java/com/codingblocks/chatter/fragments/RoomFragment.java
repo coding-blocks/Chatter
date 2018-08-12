@@ -10,6 +10,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,6 +30,7 @@ import com.codingblocks.chatter.R;
 import com.codingblocks.chatter.RoomsDatabase;
 import com.codingblocks.chatter.SplashActivity;
 import com.codingblocks.chatter.adapters.MessagesAdapter;
+import com.codingblocks.chatter.db.Mentions;
 import com.codingblocks.chatter.db.MessagesTable;
 import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.models.MessagesDao;
@@ -64,6 +67,8 @@ public class RoomFragment extends Fragment {
     public EditText inputMessage;
     @BindView(R.id.sendButton)
     public ImageButton sendButton;
+    @BindView(R.id.joinRoom)
+    FloatingActionButton fab;
     MessagesAdapter adapter;
     LinearLayoutManager layoutManager;
     List<MessagesTable> messages = new ArrayList<>();
@@ -87,7 +92,7 @@ public class RoomFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
         ButterKnife.bind(this, view);
-        Bundle bundle = this.getArguments();
+        final Bundle bundle = this.getArguments();
         if (bundle.getString("RoomName") != null)
             getActivity().setTitle(bundle.getString("RoomName"));
         else {
@@ -104,6 +109,7 @@ public class RoomFragment extends Fragment {
         init();
 
         /* Sent message button */
+
         roomdb = RoomsDatabase.getInstance(getContext());
         roomsDao = roomdb.roomsDao();
         final List<RoomsTable> currentRoom = new ArrayList<>();
@@ -119,8 +125,20 @@ public class RoomFragment extends Fragment {
             protected void onPostExecute(List<RoomsTable> rooms) {
                 currentRoom.clear();
                 currentRoom.addAll(rooms);
+                if (!bundle.getBoolean("roomMember")) {
+                    sendButton.setOnClickListener(null);
+                    inputMessage.setEnabled(false);
+                    fab.setVisibility(View.VISIBLE);
+                    fab.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            joinRoom(view);
+                        }
+                    });
+                }
             }
         }.execute();
+
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,7 +148,51 @@ public class RoomFragment extends Fragment {
                 }
             }
         });
+
         return view;
+    }
+
+    private void joinRoom(final View view) {
+        final String accessToken = getActivity()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("accessToken", "");
+        String uid = getActivity()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("idOfUser", "");
+        Log.i("TAG", "onResponse: " + uid + accessToken);
+        RequestBody requestBody = new FormBody.Builder()
+                .add("id", roomId)
+                .build();
+        final Request request = new Request.Builder()
+                .url("https://api.gitter.im/v1/user/"
+                        + uid
+                        + "/rooms")
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .post(requestBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Snackbar.make(view, "Added in the Room", Snackbar.LENGTH_LONG).show();
+                            fab.setVisibility(View.GONE);
+                            inputMessage.setEnabled(true);
+                        }
+                    });
+
+                }
+
+            }
+        });
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -223,7 +285,6 @@ public class RoomFragment extends Fragment {
                         int i;
                         for (i = 0; i < JArray.length(); i++) {
                             JSONObject dynamicJObject = JArray.getJSONObject(i);
-                            Log.d("TAG access", "onResponse: " + dynamicJObject.getString("text"));
                             String uId = dynamicJObject.getString("id");
                             String text = dynamicJObject.getString("text");
                             String timestamp = dynamicJObject.getString("sent");
@@ -232,6 +293,22 @@ public class RoomFragment extends Fragment {
                             String displayName = userObject.getString("displayName");
                             String username = userObject.getString("username");
                             String avatarUrl = userObject.getString("avatarUrlMedium");
+                            List<Mentions> mentionId = new ArrayList<>();
+                            JSONObject mentions = null;
+                            if (!dynamicJObject.isNull("mentions")) {
+                                if (dynamicJObject.getString("mentions").length() > 2) {
+                                    final String mentionsText = "{\"mentions\":" + dynamicJObject.getString("mentions") + "}";
+                                    mentions = new JSONObject(mentionsText);
+                                    JSONArray mentionsArray = mentions.getJSONArray("mentions");
+                                    for (int j = 0; j < mentionsArray.length(); j++) {
+                                        JSONObject mentionObjects = mentionsArray.getJSONObject(j);
+                                        String id = mentionObjects.getString("userId");
+                                        String screenName = mentionObjects.getString("screenName");
+                                        mentionId.add(new Mentions(id, screenName));
+                                    }
+                                }
+                            }
+
 
                             final MessagesTable message = new MessagesTable();
 //                            message.setId(nextId);
@@ -244,6 +321,7 @@ public class RoomFragment extends Fragment {
                             message.setRoomId(roomId);
                             message.setUsername(username);
                             message.setUserAvater(avatarUrl);
+                            message.setMentionsIds(mentionId);
                             messagesTableList.add(message);
 
                         }
