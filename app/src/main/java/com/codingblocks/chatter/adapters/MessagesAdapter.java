@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.codingblocks.chatter.R;
+import com.codingblocks.chatter.UserActivity;
 import com.codingblocks.chatter.db.MessagesTable;
 import com.squareup.picasso.Picasso;
 

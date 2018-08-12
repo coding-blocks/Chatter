@@ -314,7 +314,12 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         else if (id == R.id.nav_prefences)
             startActivity(new Intent(DashboardActivity.this, SettingsActivity.class));
         else if(id == 1 ||id == 2 ||id == 3 ||id == 4 ||id == 5){
-            openRoom(suggested.get(id).getuId(),suggested.get(id).getRoomName(),suggested.get(id).getUserCount(),suggested.get(id).getFavourite());
+            openRoom(suggested.get(id).getuId(),
+                    suggested.get(id).getRoomName(),
+                    suggested.get(id).getUserCount(),
+                    suggested.get(id).getFavourite(),
+                    false
+            );
         }
 
         return false;
