@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -72,6 +73,8 @@ public class RoomActivity extends AppCompatActivity {
         roomsDao = roomdb.roomsDao();
         messagesDatabase = MessagesDatabase.getInstance(this);
         messagesDao = messagesDatabase.messagesDao();
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     private void leaveRoom(final String roomId) {
@@ -174,6 +177,9 @@ public class RoomActivity extends AppCompatActivity {
             case R.id.markRead:
                 markRed(roomId);
                 break;
+            case android.R.id.home:
+                onBackPressed();
+                break;
 
         }
         return super.onOptionsItemSelected(item);
@@ -205,6 +211,7 @@ public class RoomActivity extends AppCompatActivity {
         });
 
     }
+
     private void roominfo(String roomId) {
         BottomSheetGroupFragment bottomSheetFragment = new BottomSheetGroupFragment();
         BottomSheetGroupFragment.newInstance(roomId).show(this.getSupportFragmentManager(), bottomSheetFragment.getTag());
