@@ -2,6 +2,9 @@
 
 ## 3.0.0
 
+#### 2.1.1
+- fix crash on message opening (due to Dao update)
+
 ### 2.1.0
  - add suggested rooms
  - user profile pic

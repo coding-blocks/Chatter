@@ -8,7 +8,7 @@ import android.content.Context;
 import com.codingblocks.chatter.db.MessagesTable;
 import com.codingblocks.chatter.models.MessagesDao;
 
-@Database(entities = {MessagesTable.class}, version = 1, exportSchema = false)
+@Database(entities = {MessagesTable.class}, version = 2, exportSchema = false)
 public abstract class MessagesDatabase extends RoomDatabase {
     private static MessagesDatabase INSTANCE;
 
@@ -18,8 +18,11 @@ public abstract class MessagesDatabase extends RoomDatabase {
         if (INSTANCE == null) {
             synchronized (LOCK) {
                 if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext()
-                            , MessagesDatabase.class, MessagesDatabase.DB_NAME).build();
+                    INSTANCE = Room.databaseBuilder(
+                            context.getApplicationContext(),
+                            MessagesDatabase.class,
+                            MessagesDatabase.DB_NAME
+                    ).fallbackToDestructiveMigration().build();
                 }
             }
         }
