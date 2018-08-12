@@ -66,7 +66,6 @@ public class AuthenticationActivity extends AppCompatActivity {
                     // Note: lenght + 7 is such that `?code=` will consume 6 indexes and the
                     // value we need beings from the 7th index
                     String authenticationCode = url.substring(OauthKeys.redirectUri.length()+6);
-                    Toast.makeText(AuthenticationActivity.this, authenticationCode, Toast.LENGTH_SHORT).show();
                     RequestBody requestBody = new FormBody.Builder()
                             .add("client_id", OauthKeys.clientID)
                             .add("client_secret", OauthKeys.clientSecret)
