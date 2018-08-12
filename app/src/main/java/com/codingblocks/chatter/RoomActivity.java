@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.fragments.BottomSheetGroupFragment;
 import com.codingblocks.chatter.fragments.RoomFragment;
 import com.codingblocks.chatter.models.MessagesDao;
@@ -276,7 +277,14 @@ public class RoomActivity extends AppCompatActivity {
                         }
                     });
 
-
+                    RoomsTable roomsTable = roomsDao.getRoomWithuId(roomId);
+                    roomsDao.deleteRoom(roomId);
+                    if(status != null) {
+                        roomsTable.setFavourite(null);
+                    } else {
+                        roomsTable.setFavourite("1");
+                    }
+                    roomsDao.addRooms(roomsTable);
                 }
             }
         });

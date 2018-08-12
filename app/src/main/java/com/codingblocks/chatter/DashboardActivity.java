@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.fragments.RoomsFragment;
+import com.codingblocks.chatter.models.RoomsDao;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -61,7 +62,9 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     NavigationView navigationView;
     Menu navMenu;
     List<RoomsTable> suggested = new ArrayList<>();
-
+    RoomsDao roomdao;
+    List<RoomsTable> favRoomsTableList;
+    SubMenu favChannelMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +90,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         imgProfile = navHeader.findViewById(R.id.img_profile);
         //for deleting db on SignOut
         roomdb = RoomsDatabase.getInstance(this);
+        roomdao = roomdb.roomsDao();
         messagesDatabase = MessagesDatabase.getInstance(this);
 
         /* Some usefull things */
@@ -144,8 +148,12 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                                             .putString("userUrl", userUrl)
                                             .putString("avatarUrl", avatarUrl)
                                             .apply();
+                                    txtName.setText(username);
+                                    txtDisplayName.setText(displayName);
+                                    Picasso.get().load(avatarUrl).into(imgProfile);
                                 }
                             });
+
                         } catch (IOException e) {
                             e.printStackTrace();
                         } catch (JSONException e) {
@@ -171,7 +179,34 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         transaction.replace(R.id.fragment_holder, RoomsFragment.newInstance("All"), "Room");
         transaction.commit();
         getSuggestedRooms();
+        updateNavFavourites();
+    }
 
+    @SuppressLint("StaticFieldLeak")
+    private void updateNavFavourites() {
+        new AsyncTask<Void, Void, List<RoomsTable>>() {
+
+            @Override
+            protected List<RoomsTable> doInBackground(Void... voids) {
+                return roomdao.getAllRooms();
+            }
+
+            @Override
+            protected void onPostExecute(List<RoomsTable> roomsTableList) {
+                super.onPostExecute(roomsTableList);
+                favRoomsTableList = roomsTableList;
+                if(favChannelMenu == null){
+                    favChannelMenu = navMenu.addSubMenu("My Favourites");
+                }
+                favChannelMenu.clear();
+                for(int i=0; i < favRoomsTableList.size(); ++i) {
+                    RoomsTable roomsTable = favRoomsTableList.get(i);
+                    if (roomsTable.getFavourite() != null) {
+                        favChannelMenu.add(Menu.NONE, 100 + i, Menu.NONE, favRoomsTableList.get(i).getRoomName());
+                    }
+                }
+            }
+        }.execute();
     }
 
     private void getSuggestedRooms() {
@@ -218,6 +253,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                             room.setUserCount(userCount);
                             room.setFavourite(favourite);
                             suggested.add(room);
+
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -227,8 +263,13 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                             public void run() {
                                 SubMenu topChannelMenu = navMenu.addSubMenu("Suggested Rooms");
                                 for (int i = 1; i <= 5; i++) {
-                                    topChannelMenu.add(Menu.NONE, i, Menu.NONE, suggested.get(i).getRoomName());
+                                    try {
+                                        topChannelMenu.add(Menu.NONE, i, Menu.NONE, suggested.get(i).getRoomName());
+                                    } catch (Exception e) {
+
+                                    }
                                 }
+
 
                             }
                         });
@@ -320,9 +361,23 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                     suggested.get(id).getFavourite(),
                     false
             );
+        } else if (id >=100) {
+            int roomId = id - 100;
+            openRoom(favRoomsTableList.get(roomId).getuId(),
+                    favRoomsTableList.get(roomId).getRoomName(),
+                    favRoomsTableList.get(roomId).getUserCount(),
+                    favRoomsTableList.get(roomId).getFavourite(),
+                    false
+            );
         }
 
         return false;
+    }
+
+    @Override
+    protected void onResume() {
+        updateNavFavourites();
+        super.onResume();
     }
 
     @Override
@@ -341,4 +396,5 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         transaction.commit();
         onBackPressed();
     }
+
 }
