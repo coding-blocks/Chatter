@@ -1,0 +1,11 @@
+Gitter is a popular chat website for open source projects.
+Unfortunately Gitter's chat app is a web-based app, meaning it is slow and doesn't save chats offline.
+
+Chatter solves this problem by bringing a native solution to Gitter.
+Your chats are saved offline and the app is as fast as any other native app.
+
+Chatter is Free and Open Source Software. 
+http://github.com/coding-blocks/Chatter
+
+Chatter has been developed under the General Public License v3.
+A copy of the license is available on the Github repository.
