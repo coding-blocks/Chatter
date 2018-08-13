@@ -247,6 +247,7 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
         final Intent roomIntent = new Intent(this, RoomActivity.class);
         bundle.putString("RoomName", displayName);
         bundle.putInt("userCount", 2);
+        bundle.putBoolean("roomMember", true);
 
         if (userRoom != null && userRoom.getFavourite() != null) {
             bundle.putString("RoomId", userRoom.getuId());

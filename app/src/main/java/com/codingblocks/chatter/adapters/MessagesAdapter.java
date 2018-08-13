@@ -1,8 +1,11 @@
 package com.codingblocks.chatter.adapters;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -20,13 +23,26 @@ import android.widget.TextView;
 import com.codingblocks.chatter.R;
 import com.codingblocks.chatter.UserActivity;
 import com.codingblocks.chatter.db.MessagesTable;
+import com.codingblocks.chatter.db.Users;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> {
 
@@ -64,7 +80,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
 
     @Override
     public void onBindViewHolder(final MessagesAdapter.MyViewHolder myViewHolder, int i) {
-        MessagesTable message = messages.get(i);
+        final MessagesTable message = messages.get(i);
         myViewHolder.username.setText(message.getDisplayName());
         // A timestamp looks like this 2014-03-25T11:51:32.289Z
         String timestamp = message.getTimestamp();
@@ -94,7 +110,84 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         } else {
             myViewHolder.message.setText(message.getText());
         }
+        myViewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                showreadby(message);
+                return false;
+            }
+        });
 
+    }
+
+    private void showreadby(MessagesTable message) {
+        LayoutInflater factory = LayoutInflater.from(context);
+        final AlertDialog infodialog = new AlertDialog.Builder(context).create();
+
+        final View dialog = factory.inflate(R.layout.dialog_info, null);
+        infodialog.setView(dialog);
+        infodialog.show();
+        final UsersAdapter adapter;
+        final List<Users> mUsers = new ArrayList<>();
+        RecyclerView mUserRecyclerView;
+        mUserRecyclerView = dialog.findViewById(R.id.usersRecyclerView);
+        adapter = new UsersAdapter(mUsers, context,1);
+        mUserRecyclerView.setHasFixedSize(true);
+        mUserRecyclerView.setLayoutManager(new GridLayoutManager(context, 5));
+        mUserRecyclerView.setAdapter(adapter);
+        final String accessToken = context
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("accessToken", "");
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+                .url("https://api.gitter.im/v1/rooms/" + message.getRoomId() + "/chatMessages/" + message.getuId() + "/readBy?access_token=" + accessToken + "&limit=20")
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = "{\"users\":" + response.body().string() + "}";
+                try {
+                    JSONObject JObject = new JSONObject(responseText);
+                    JSONArray JArray = JObject.getJSONArray("users");
+                    int i;
+                    for (i = 0; i < JArray.length(); i++) {
+                        Log.i("TAG", "onResponse: ");
+                        JSONObject dynamicJObject = JArray.getJSONObject(i);
+                        Log.i("TAG", "onResponse: " + dynamicJObject);
+                        String id = dynamicJObject.getString("id");
+                        String name = dynamicJObject.getString("username");
+                        String displayName = dynamicJObject.getString("displayName");
+                        String url = dynamicJObject.getString("avatarUrl");
+                        String avatarUrlSmall = dynamicJObject.getString("avatarUrlSmall");
+//                        String role = dynamicJObject.getString("role");
+                        Users user = new Users();
+                        user.setId(id);
+//                        user.setRole(role);
+                        user.setUrl(url);
+                        user.setAvatarUrlSmall(avatarUrlSmall);
+                        user.setDisplayName(displayName);
+                        user.setUsername(name);
+                        mUsers.add(user);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } finally {
+                    ((Activity) context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+
+                        }
+                    });
+                }
+            }
+        });
     }
 
     @Override
