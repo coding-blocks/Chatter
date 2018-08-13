@@ -302,9 +302,11 @@ public class RoomFragment extends Fragment {
                                     JSONArray mentionsArray = mentions.getJSONArray("mentions");
                                     for (int j = 0; j < mentionsArray.length(); j++) {
                                         JSONObject mentionObjects = mentionsArray.getJSONObject(j);
-                                        String id = mentionObjects.getString("userId");
-                                        String screenName = mentionObjects.getString("screenName");
-                                        mentionId.add(new Mentions(id, screenName));
+                                        if (!mentionObjects.isNull("userId")) {
+                                            String id = mentionObjects.getString("userId");
+                                            String screenName = mentionObjects.getString("screenName");
+                                            mentionId.add(new Mentions(id, screenName));
+                                        }
                                     }
                                 }
                             }

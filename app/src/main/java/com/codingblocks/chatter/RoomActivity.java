@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.codingblocks.chatter.fragments.BottomSheetGroupFragment;
 import com.codingblocks.chatter.fragments.RoomFragment;
@@ -283,6 +284,23 @@ public class RoomActivity extends AppCompatActivity {
 
     }
 
+    public void RoomUsers(View view) {
+        Bundle bundle = new Bundle();
+        bundle.putString("roomId", roomId);
+        bundle.putBoolean("addUser", false);
+        Intent roomIntent = new Intent(RoomActivity.this, RoomUsersActivity.class);
+        roomIntent.putExtras(bundle);
+        startActivity(roomIntent);
+    }
+
+    public void addUser(View view) {
+        Bundle bundle = new Bundle();
+        bundle.putString("roomId", roomId);
+        bundle.putBoolean("addUser", true);
+        Intent roomIntent = new Intent(RoomActivity.this, RoomUsersActivity.class);
+        roomIntent.putExtras(bundle);
+        startActivity(roomIntent);
+    }
 }
 
 

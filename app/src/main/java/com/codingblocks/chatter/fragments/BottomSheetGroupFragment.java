@@ -73,7 +73,7 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
         ButterKnife.bind(this, root);
         roomdb = RoomsDatabase.getInstance(getContext());
         roomsDao = roomdb.roomsDao();
-        adapter = new UsersAdapter(mUsers, getContext());
+        adapter = new UsersAdapter(mUsers, getContext(),1);
         mUserRecyclerView.setHasFixedSize(true);
         mUserRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 6));
         mUserRecyclerView.setAdapter(adapter);

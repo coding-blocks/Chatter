@@ -64,7 +64,7 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
     private String userName;
     String roomId;
     String email;
-    String website;
+    String website = null;
     String profile;
     String displayName;
     String imgurl;
@@ -114,7 +114,8 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                     displayName = jsonObject.getString("displayName");
                     final String location = jsonObject.getString("location");
                     email = jsonObject.getString("email");
-                    website = jsonObject.getString("website");
+                    if (!jsonObject.isNull("website"))
+                        website = jsonObject.getString("website");
                     profile = jsonObject.getString("profile");
                     String company = jsonObject.getString("company");
                     JSONObject github = jsonObject.getJSONObject("github");
@@ -136,7 +137,8 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                     e.printStackTrace();
                 } finally {
                     profilebtn.setOnClickListener(UserActivity.this);
-                    websitebtn.setOnClickListener(UserActivity.this);
+                    if (website != null)
+                        websitebtn.setOnClickListener(UserActivity.this);
                     emailbtn.setOnClickListener(UserActivity.this);
                     chatbtn.setOnClickListener(UserActivity.this);
                     new AsyncTask<Void, Void, Void>() {

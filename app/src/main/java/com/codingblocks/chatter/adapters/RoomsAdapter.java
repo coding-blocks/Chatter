@@ -22,7 +22,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
     private List<RoomsTable> rooms;
     private Context context;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    public static class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView roomName;
         public TextView roomUnread;
         public ImageView avatarImage;
