@@ -14,18 +14,6 @@
 
     </group>
 
-    <item android:title="Favourties">
-        <menu>
-            <group
-                android:id="@+id/favourites"
-                android:checkableBehavior="single">
-                <item
-                    android:id="@+id/nav_favourite"
-                    android:title="Favourite" />
-
-            </group>
-        </menu>
-    </item>
     <group
         android:menuCategory="system"
         android:id="@+id/features"
