@@ -144,8 +144,12 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                                             .putString("userUrl", userUrl)
                                             .putString("avatarUrl", avatarUrl)
                                             .apply();
+                                    txtName.setText(username);
+                                    txtDisplayName.setText(displayName);
+                                    Picasso.get().load(avatarUrl).into(imgProfile);
                                 }
                             });
+
                         } catch (IOException e) {
                             e.printStackTrace();
                         } catch (JSONException e) {
