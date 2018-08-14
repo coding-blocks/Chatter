@@ -13,11 +13,11 @@ Screenshots :
 
 <img src="https://user-images.githubusercontent.com/29139786/43609356-62d17ee2-96c1-11e8-9414-d3a00490d362.gif" width=300>
 
-<img src="https://user-images.githubusercontent.com/31950172/40463974-eed8a668-5f35-11e8-85e0-1675e4b3e457.png" width=300><img src="https://user-images.githubusercontent.com/31950172/40463975-ef141fc2-5f35-11e8-883c-f3758db0b350.png" width=300>
+<img src="https://user-images.githubusercontent.com/29139786/44072492-ca6a0e90-9fac-11e8-9f84-9ab288f4c33a.jpg" width=300><img src="https://user-images.githubusercontent.com/29139786/44072489-c9070904-9fac-11e8-9dad-527063fcde3c.jpg" width=300>
 
-<img src="https://user-images.githubusercontent.com/31950172/40463976-ef50f79e-5f35-11e8-9ded-d08724292093.png" width=300><img src="https://user-images.githubusercontent.com/31950172/40463977-ef90a52e-5f35-11e8-80ed-910a00414458.png" width=300>
+<img src="https://user-images.githubusercontent.com/29139786/44072488-c7e04950-9fac-11e8-9479-cfc132dc49a6.jpg" width=300><img src="https://user-images.githubusercontent.com/29139786/44072485-c6b03c70-9fac-11e8-85b4-2714f2cd8a18.jpg" width=300>
 
-<img src="https://user-images.githubusercontent.com/31950172/40463978-efc9de48-5f35-11e8-90c7-6b6f3bb20894.png" width=300><img src="https://user-images.githubusercontent.com/31950172/40463979-f01303b6-5f35-11e8-90a8-2e38f8e41e47.png" width=300>
+<img src="https://user-images.githubusercontent.com/29139786/44072581-4f6862cc-9fad-11e8-84d3-69d5f028afed.jpg" width=300><img src="https://user-images.githubusercontent.com/29139786/44072582-501f610c-9fad-11e8-9ab5-2e534b863b51.jpg" width=300>
 
  ### Automating Publishing to the Play Store
  
