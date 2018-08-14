@@ -4,6 +4,10 @@
     <item
         android:id="@+id/aboutRoom"
         android:title="Room Info" />
+
+    <item
+        android:id="@+id/share"
+        android:title="Share" />
     <item
         android:id="@+id/favourite"
         android:title="Add to favourite" />
