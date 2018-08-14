@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.codingblocks.chatter.R;
 import com.codingblocks.chatter.UserActivity;
@@ -69,6 +70,10 @@ public class UsersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 View otherUserView2 = LayoutInflater.from(parent.getContext()).inflate(R.layout.room_item, parent, false);
                 viewHolder = new RoomsAdapter.MyViewHolder(otherUserView2); // view holder for normal items
                 break;
+            case 4:
+                View otherUserView3 = LayoutInflater.from(parent.getContext()).inflate(R.layout.room_item, parent, false);
+                viewHolder = new RoomsAdapter.MyViewHolder(otherUserView3); // view holder for normal items
+                break;
         }
 
         return viewHolder;
@@ -118,6 +123,72 @@ public class UsersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                     addUser(v, users);
                 }
             });
+        } else if (type == 4) {
+            RoomsAdapter.MyViewHolder holder = (RoomsAdapter.MyViewHolder) viewHolder;
+            holder.roomName.setText(users.getDisplayName());
+            Picasso.get().load(users.getAvatarUrlSmall()).into(holder.avatarImage);
+            holder.roomUnread.setVisibility(View.GONE);
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    removeUser(v, users);
+                }
+            });
+        }
+    }
+
+    private void removeUser(View v, Users users) {
+        final OkHttpClient client = new OkHttpClient();
+        String accessToken = context
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("accessToken", "");
+        String idOfUser = context
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("idOfUser", "");
+        final Request request = new Request.Builder()
+                .url("https://api.gitter.im/v1/rooms/"
+                        + roomId
+                        + "/users/"
+                        + users.getId())
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .delete()
+                .build();
+        if (idOfUser.equals(users.getId())) {
+            Toast.makeText(context, "You Can't remove yourself from Room", Toast.LENGTH_SHORT).show();
+        } else {
+            AlertDialog dialog = new AlertDialog.Builder(context)
+                    .setMessage("Are you sure you want to remove this person from Room?")
+                    .setCancelable(false)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @SuppressLint("StaticFieldLeak")
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            client.newCall(request).enqueue(new Callback() {
+                                @Override
+                                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                                }
+
+                                @Override
+                                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                                    Log.i("TAG", "onResponse: " + response.body().string());
+                                    if (response.isSuccessful()) {
+                                        ((Activity) context).finish();
+
+                                    }
+
+                                }
+                            });
+                        }
+
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
         }
     }
 
@@ -152,7 +223,7 @@ public class UsersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
                             @Override
                             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                                Log.i("TAG", "onResponse: "+response.body().string());
+                                Log.i("TAG", "onResponse: " + response.body().string());
                                 if (response.isSuccessful()) {
                                     ((Activity) context).finish();
 
