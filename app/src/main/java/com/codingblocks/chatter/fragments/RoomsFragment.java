@@ -2,7 +2,6 @@ package com.codingblocks.chatter.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -12,7 +11,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -29,11 +27,13 @@ import com.codingblocks.chatter.MessagesDatabase;
 import com.codingblocks.chatter.NoNetworkActivity;
 import com.codingblocks.chatter.R;
 import com.codingblocks.chatter.RoomsDatabase;
-import com.codingblocks.chatter.SettingsActivity;
 import com.codingblocks.chatter.SplashActivity;
 import com.codingblocks.chatter.adapters.RoomsAdapter;
 import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.models.RoomsDao;
+import com.elirex.fayeclient.FayeClient;
+import com.elirex.fayeclient.FayeClientListener;
+import com.elirex.fayeclient.MetaMessage;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -116,8 +116,57 @@ public class RoomsFragment extends Fragment {
                 refreshLayout.setRefreshing(false);
             }
         });
-
+        setupfaye();
         return view;
+    }
+
+    private void setupfaye() {
+        String accessToken = getActivity()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("accessToken", "");
+        String userId = getActivity()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("idOfUser", "");
+// Initial Meta Message
+        MetaMessage meta = new MetaMessage();
+        JSONObject jsonId = new JSONObject();
+        try {
+            jsonId.put("accesstoken", accessToken);
+        } catch (Exception e) {
+
+        }
+        meta.setAllExt(jsonId.toString());
+        try {
+            meta.connect();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+// Initinal FayeClient
+        FayeClient mClient = new FayeClient("https://ws.gitter.im/bayeux", meta);
+// Set FayeClient listener
+        mClient.setListener(new FayeClientListener() {
+            @Override
+            public void onConnectedServer(FayeClient fc) {
+                Log.i("LOG_TAG", "Connected");
+            }
+
+            @Override
+            public void onDisconnectedServer(FayeClient fc) {
+                Log.i("LOG_TAG", "Disconnected");
+            }
+
+            @Override
+            public void onReceivedMessage(FayeClient fc, String msg) {
+                Log.i("LOG_TAG", "Message: " + msg);
+            }
+        });
+
+
+// Connect to server
+        mClient.connectServer();
+
+        mClient.addChannel("/api/v1/user/" + userId + "/rooms");
     }
 
     public boolean isNetworkAvailable() {
@@ -338,7 +387,7 @@ public class RoomsFragment extends Fragment {
         searchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
-                displayRooms(mRooms,filter);
+                displayRooms(mRooms, filter);
                 return false;
             }
         });

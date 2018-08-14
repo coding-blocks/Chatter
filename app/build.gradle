@@ -57,7 +57,7 @@ ext {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "com.android.support.constraint:constraint-layout:1.1.2"
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation "com.android.support:support-v4:$supportLibVersion"
     implementation "com.android.support:support-vector-drawable:$supportLibVersion"
     implementation "com.android.support:exifinterface:$supportLibVersion"
@@ -75,17 +75,17 @@ dependencies {
     //Picasso for image loading
     implementation 'com.squareup.picasso:picasso:2.71828'
     // Room
-    implementation "android.arch.persistence.room:runtime:1.1.1"
+    implementation 'android.arch.persistence.room:runtime:1.1.1'
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
     // GSON
-    implementation "com.google.code.gson:gson:2.8.2"
+    implementation 'com.google.code.gson:gson:2.8.2'
     // Annotations
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
-
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     testImplementation 'junit:junit:4.12'
+    implementation project(':fayeclient')
 }
 
 play {
@@ -97,9 +97,9 @@ play {
 def props = new Properties()
 
 if (System.getenv('CI') != 'true') {
-    props.load(new FileInputStream(rootProject.file("keys/release.properties")))
-
-    android.signingConfigs.release.storeFile rootProject.file(props.keyStore)
+//    props.load(new FileInputStream(rootProject.file("keys/release.properties")))
+//
+//    android.signingConfigs.release.storeFile rootProject.file(props.keyStore)
     android.signingConfigs.release.storePassword props.keyStorePassword
     android.signingConfigs.release.keyAlias props.keyAlias
     android.signingConfigs.release.keyPassword props.keyAliasPassword
