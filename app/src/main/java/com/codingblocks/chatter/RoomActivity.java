@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.codingblocks.chatter.fragments.BottomSheetGroupFragment;
 import com.codingblocks.chatter.fragments.RoomFragment;
@@ -39,6 +40,7 @@ public class RoomActivity extends AppCompatActivity {
     RoomsDatabase roomdb;
     RoomsDao roomsDao;
     private Menu menu;
+    Bundle bundle;
 
 
     MessagesDatabase messagesDatabase;
@@ -59,7 +61,7 @@ public class RoomActivity extends AppCompatActivity {
                 .getString("idOfUser", "");
         Log.i("TAG", "onResponse: " + uid + accessToken);
         Intent i = getIntent();
-        Bundle bundle = i.getExtras();
+        bundle = i.getExtras();
         roomId = (String) bundle.get("RoomId");
         usercount = (int) bundle.get("userCount");
         status = bundle.getString("favourite");
@@ -145,12 +147,16 @@ public class RoomActivity extends AppCompatActivity {
         MenuItem item1 = menu.findItem(R.id.leaveRoom);
         MenuItem item2 = menu.findItem(R.id.aboutRoom);
         MenuItem menuItem = menu.findItem(R.id.favourite);
+        MenuItem item3 = menu.findItem(R.id.share);
         if (usercount == 2) {
             item1.setVisible(false);
             item2.setVisible(false);
+            item3.setVisible(false);
         } else {
             item1.setVisible(true);
             item2.setVisible(true);
+            item3.setVisible(true);
+
         }
         if (status != null) {
             menuItem.setTitle("Remove from Favourites");
@@ -178,12 +184,26 @@ public class RoomActivity extends AppCompatActivity {
             case R.id.markRead:
                 markRed(roomId);
                 break;
+            case R.id.share:
+                share(bundle.getString("RoomName"));
+                break;
             case android.R.id.home:
                 onBackPressed();
                 break;
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void share(String roomName) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Join the chat: https://gitter.im/"+roomName);
+        try {
+            startActivity(shareIntent);
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(RoomActivity.this, "No App Available", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void markRed(String roomId) {
