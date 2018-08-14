@@ -61,10 +61,21 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_alignEnd="@id/usersRecyclerView"
         android:layout_above="@id/usersRecyclerView"
+        android:layout_alignEnd="@id/usersRecyclerView"
+        android:layout_alignRight="@id/usersRecyclerView"
+        android:layout_centerVertical="true"
         android:onClick="addUser"
-        android:text="Add User"
-        android:layout_alignRight="@id/usersRecyclerView" />
+        android:text="Add User" />
+
+    <Button
+        android:id="@+id/deleteRoomBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/usersRecyclerView"
+        android:layout_centerHorizontal="true"
+        android:onClick="addUser"
+        android:text="Delete Room"
+        android:visibility="gone" />
+
 </RelativeLayout>
