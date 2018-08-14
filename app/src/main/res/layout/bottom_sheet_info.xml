@@ -77,5 +77,14 @@
         android:onClick="addUser"
         android:text="Delete Room"
         android:visibility="gone" />
+    <Button
+        android:id="@+id/removeUserBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/usersRecyclerView"
+        android:onClick="addUser"
+        android:layout_toLeftOf="@id/deleteRoomBtn"
+        android:text="Delete User"
+        android:visibility="gone" />
 
 </RelativeLayout>

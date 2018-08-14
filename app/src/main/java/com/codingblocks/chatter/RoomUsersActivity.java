@@ -39,6 +39,7 @@ public class RoomUsersActivity extends AppCompatActivity {
     private OkHttpClient client = new OkHttpClient();
     private String roomId;
     private boolean addUser = false;
+    private boolean removeUser = false;
     String accessToken;
     List<Users> mUsers = new ArrayList<>();
     UsersAdapter adapter;
@@ -58,13 +59,17 @@ public class RoomUsersActivity extends AppCompatActivity {
         Bundle bundle = i.getExtras();
         roomId = (String) bundle.get("roomId");
         addUser = bundle.getBoolean("addUser");
+        removeUser = bundle.getBoolean("removeUser");
         accessToken = this
                 .getSharedPreferences("UserPreferences", 0)
                 .getString("accessToken", "");
-        if (!addUser)
-            adapter = new UsersAdapter(mUsers, this, 2);
-        else
+        if (addUser)
             adapter = new UsersAdapter(mUsers, this, 3, roomId);
+        else if (removeUser)
+            adapter = new UsersAdapter(mUsers, this, 4, roomId);
+        else
+            adapter = new UsersAdapter(mUsers, this, 2);
+
         mUserRecyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
         mUserRecyclerView.setLayoutManager(layoutManager);

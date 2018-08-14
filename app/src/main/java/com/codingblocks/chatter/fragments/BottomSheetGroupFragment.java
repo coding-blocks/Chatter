@@ -2,6 +2,7 @@ package com.codingblocks.chatter.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 
 import com.codingblocks.chatter.MessagesDatabase;
 import com.codingblocks.chatter.R;
+import com.codingblocks.chatter.RoomUsersActivity;
 import com.codingblocks.chatter.RoomsDatabase;
 import com.codingblocks.chatter.adapters.UsersAdapter;
 import com.codingblocks.chatter.db.RoomsTable;
@@ -56,6 +58,8 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
     RecyclerView mUserRecyclerView;
     @BindView(R.id.deleteRoomBtn)
     Button deleteRoom;
+    @BindView(R.id.removeUserBtn)
+    Button removeUser;
     private OkHttpClient client = new OkHttpClient();
     private String room_id;
     //Database
@@ -169,6 +173,18 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                                             @Override
                                             public void onClick(View v) {
                                                 deleteRoom();
+                                            }
+                                        });
+                                        removeUser.setVisibility(View.VISIBLE);
+                                        removeUser.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                Bundle bundle = new Bundle();
+                                                bundle.putString("roomId", room_id);
+                                                bundle.putBoolean("removeUser", true);
+                                                Intent roomIntent = new Intent(getActivity(), RoomUsersActivity.class);
+                                                roomIntent.putExtras(bundle);
+                                                startActivity(roomIntent);
                                             }
                                         });
                                     }
