@@ -37,11 +37,6 @@
 -dontwarn okhttp3.**
 -dontwarn okhttp3.internal.platform.*
 
-# Realm
-
--keep class io.realm.annotations.RealmModule
--keep @io.realm.annotations.RealmModule class *
--keep class io.realm.internal.** {*;}
--keep @io.realm.internal.Keep class *
--dontwarn javax.**
--dontwarn io.realm.**
+-keep class android.content.Context {
+    public java.io.File getExternalCacheDir();
+}
