@@ -55,6 +55,7 @@ public class RoomActivity extends AppCompatActivity {
     MessagesDao messagesDao;
     String accessToken;
     String uid;
+    String checkedvalue;
     String status = null;
 
     @Override
@@ -230,15 +231,18 @@ public class RoomActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if (checkedId == R.id.radioAll) {
+                            checkedvalue = "all";
                             infoText.setText("Show unread item counts\n" +
                                     "Notify for all chats\n" +
                                     "Notify when you're mentioned\n" +
                                     "Notify on @/all announcements");
                         } else if (checkedId == R.id.radioAnnouncements) {
+                            checkedvalue = "announcement";
                             infoText.setText("Show unread item counts\n" +
                                     "Notify when you're mentioned\n" +
                                     "Notify on @/all announcements");
                         } else if (checkedId == R.id.radioMute) {
+                            checkedvalue = "mute";
                             infoText.setText("Show activity indicator on chat\n" +
                                     "Notify when you're mentioned");
                         }
@@ -296,6 +300,9 @@ public class RoomActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                RequestBody requestBody = new FormBody.Builder()
+                        .add("mode", checkedvalue)
+                        .build();
                 final Request request = new Request.Builder()
                         .url("https://api.gitter.im/v1/"
                                 + "user/"
@@ -306,7 +313,7 @@ public class RoomActivity extends AppCompatActivity {
                         )
                         .addHeader("Accept", "application/json")
                         .addHeader("Authorization", "Bearer " + accessToken)
-                        .get()
+                        .put(requestBody)
                         .build();
                 client.newCall(request).
 
@@ -318,18 +325,8 @@ public class RoomActivity extends AppCompatActivity {
 
                             @Override
                             public void onResponse(Call call, Response response) throws IOException {
-                                try {
-                                    JSONObject jsonObject = new JSONObject(response.body().string());
-                                    String mode = jsonObject.getString("mode");
-                                    if (mode.equals("all")) {
-                                        all.setChecked(true);
-                                    } else if (mode.equals("announcement")) {
-                                        announcements.setChecked(true);
-                                    } else if (mode.equals("mute")) {
-                                        mute.setChecked(true);
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                                if (response.isSuccessful()) {
+                                    infodialog.dismiss();
                                 }
 
                             }
