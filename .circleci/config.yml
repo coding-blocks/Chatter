@@ -23,6 +23,9 @@ jobs:
       - run:
           name: Run Build
           command: ./gradlew assembleDebug
+      - run:
+          name: Run test
+          command: ./gradlew test
 #      - store_artifacts:
 #          path: app/build/reports
 #          destination: reports

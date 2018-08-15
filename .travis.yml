@@ -45,3 +45,4 @@ cache:
     - "${TRAVIS_BUILD_DIR}/android/gradle/wrapper/dists/"
 script:
   - ./gradlew assembleDebug
+  - ./gradlew test
