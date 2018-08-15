@@ -261,9 +261,11 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                SubMenu topChannelMenu = navMenu.addSubMenu("Suggested Rooms");
-                                for (int i = 1; i <= 5; i++) {
-                                    topChannelMenu.add(Menu.NONE, i, Menu.NONE, suggested.get(i).getRoomName());
+                                if (suggested.size() > 0) {
+                                    SubMenu topChannelMenu = navMenu.addSubMenu("Suggested Rooms");
+                                    for (int i = 1; i <= 5; i++) {
+                                        topChannelMenu.add(Menu.NONE, i, Menu.NONE, suggested.get(i).getRoomName());
+                                    }
                                 }
 
                             }
