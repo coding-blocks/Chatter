@@ -45,7 +45,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
+public class BottomSheetGroupFragment extends BottomSheetDialogFragment implements View.OnClickListener {
     @BindView(R.id.group_image)
     ImageView mGroupImage;
     @BindView(R.id.group_displayname)
@@ -60,6 +60,8 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
     Button deleteRoom;
     @BindView(R.id.removeUserBtn)
     Button removeUser;
+    @BindView(R.id.updateRoomBtn)
+    Button updateRoom;
     private OkHttpClient client = new OkHttpClient();
     private String room_id;
     //Database
@@ -135,6 +137,9 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                 .addHeader("Authorization", "Bearer " + accessToken)
                 .build();
         fetchRoomUsers(request);
+        deleteRoom.setOnClickListener(this);
+        removeUser.setOnClickListener(this);
+        updateRoom.setOnClickListener(this);
         return root;
     }
 
@@ -169,24 +174,9 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                                     @Override
                                     public void run() {
                                         deleteRoom.setVisibility(View.VISIBLE);
-                                        deleteRoom.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                deleteRoom();
-                                            }
-                                        });
                                         removeUser.setVisibility(View.VISIBLE);
-                                        removeUser.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                Bundle bundle = new Bundle();
-                                                bundle.putString("roomId", room_id);
-                                                bundle.putBoolean("removeUser", true);
-                                                Intent roomIntent = new Intent(getActivity(), RoomUsersActivity.class);
-                                                roomIntent.putExtras(bundle);
-                                                startActivity(roomIntent);
-                                            }
-                                        });
+                                        updateRoom.setVisibility(View.VISIBLE);
+
                                     }
                                 });
 
@@ -214,6 +204,10 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                 }
             }
         });
+    }
+
+    private void updateRoom() {
+
     }
 
     private void deleteRoom() {
@@ -268,5 +262,26 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                     }
                 })
                 .show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        switch (id) {
+            case R.id.deleteRoomBtn:
+                deleteRoom();
+                break;
+            case R.id.removeUserBtn:
+                Bundle bundle = new Bundle();
+                bundle.putString("roomId", room_id);
+                bundle.putBoolean("removeUser", true);
+                Intent roomIntent = new Intent(getActivity(), RoomUsersActivity.class);
+                roomIntent.putExtras(bundle);
+                startActivity(roomIntent);
+                break;
+            case R.id.updateRoomBtn:
+                updateRoom();
+                break;
+        }
     }
 }

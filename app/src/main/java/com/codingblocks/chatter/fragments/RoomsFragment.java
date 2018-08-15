@@ -226,7 +226,8 @@ public class RoomsFragment extends Fragment {
                                     boolean roomMember = dynamicJObject.getBoolean("roomMember");
                                     String topic = dynamicJObject.getString("topic");
 
-                                    Log.i(TAG, "run: " + dynamicJObject.toString());
+                                    Log.i(TAG, "updateinfo: " + dynamicJObject.toString());
+
                                     String favourite = null;
                                     if (!dynamicJObject.isNull("favourite"))
                                         favourite = (dynamicJObject.getString("favourite"));
