@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -41,8 +42,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class BottomSheetGroupFragment extends BottomSheetDialogFragment implements View.OnClickListener {
@@ -207,6 +210,63 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment implemen
     }
 
     private void updateRoom() {
+        LayoutInflater factory = LayoutInflater.from(getContext());
+        final android.app.AlertDialog infodialog = new android.app.AlertDialog.Builder(getContext()).create();
+
+        final View dialog = factory.inflate(R.layout.update_info_dialog, null);
+        TextView roomname;
+        EditText tags, topic;
+        Button updateRoom;
+        tags = dialog.findViewById(R.id.tagsedt);
+        topic = dialog.findViewById(R.id.topicedt);
+        roomname = dialog.findViewById(R.id.room_name);
+        updateRoom = dialog.findViewById(R.id.confirmUpdate);
+        tags.setText(roomsTable.getTags());
+        topic.setText(roomsTable.getTopic());
+        roomname.setText(roomsTable.getRoomName());
+        infodialog.setView(dialog);
+        infodialog.show();
+        final String accessToken = getContext()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("accessToken", "");
+        final OkHttpClient client = new OkHttpClient();
+
+        final RequestBody requestBody = new FormBody.Builder()
+                .add("tags", tags.getText().toString())
+                .build();
+        final Request request = new Request.Builder()
+                .url("https://api.gitter.im/v1/rooms/" + room_id)
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .put(requestBody)
+                .build();
+        updateRoom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (response.isSuccessful()) {
+                            infodialog.dismiss();
+                        } else {
+                            try {
+                                JSONObject jsonObject = new JSONObject(response.body().string());
+                                Log.i("TAG", "onResponse: " + jsonObject);
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
 
     }
 

@@ -11,7 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:text="Delete-users"
         android:textAlignment="center"
         android:textColor="#0f0520"
         android:textSize="24sp" />
@@ -19,22 +18,45 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Topic" />
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:text="Topic"
+        android:textColor="#0f0520"
+        android:textSize="20dp" />
 
     <EditText
         android:id="@+id/topicedt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginStart="10dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="tags" />
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:text="Tags"
+        android:textColor="#0f0520"
+        android:textSize="20dp" />
 
     <EditText
         android:id="@+id/tagsedt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginStart="10dp" />
+
+    <Button
+        android:id="@+id/confirmUpdate"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="20dp"
+        android:text="Update Info" />
 </LinearLayout>
