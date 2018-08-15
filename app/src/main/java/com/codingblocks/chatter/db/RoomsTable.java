@@ -24,6 +24,16 @@ public class RoomsTable {
     @Nullable
     private String favourite;
 
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    private String tags;
+
     public String getTopic() {
         return topic;
     }
@@ -34,7 +44,7 @@ public class RoomsTable {
 
     private String topic;
 
-    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, String topic,@Nullable String favourite,boolean roomMember) {
+    public RoomsTable(int id, String uId, String roomName, int userCount, int unreadItems, int mentions, String draftMessage, String roomAvatar, String topic, @Nullable String favourite, boolean roomMember, String tags) {
         this.id = id;
         this.uId = uId;
         this.roomName = roomName;
@@ -45,6 +55,7 @@ public class RoomsTable {
         this.roomAvatar = roomAvatar;
         this.roomMember = roomMember;
         this.favourite = favourite;
+        this.tags = tags;
     }
 
     @Ignore

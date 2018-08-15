@@ -225,16 +225,16 @@ public class RoomsFragment extends Fragment {
                                     int mentions = dynamicJObject.getInt("mentions");
                                     boolean roomMember = dynamicJObject.getBoolean("roomMember");
                                     String topic = dynamicJObject.getString("topic");
+                                    String tags = dynamicJObject.getString("tags");
+                                    Log.i(TAG, "run: "+tags);
 
-                                    Log.i(TAG, "run: " + dynamicJObject.toString());
+
                                     String favourite = null;
                                     if (!dynamicJObject.isNull("favourite"))
                                         favourite = (dynamicJObject.getString("favourite"));
-                                    Log.i(TAG, "run: " + favourite);
 
 //                                    // Get the current max id in the EntityName table
                                     int maxId = dao.getMax();
-                                    Log.i(TAG, "onPostExecute: dao max" + dao.getMax());
                                     // If id is null, set it to 1, else set increment it by 1
                                     int nextId = (maxId == 0) ? 1 : maxId + 1;
 
@@ -259,6 +259,7 @@ public class RoomsFragment extends Fragment {
                                     room.setRoomAvatar(url);
                                     room.setRoomMember(roomMember);
                                     room.setFavourite(favourite);
+                                    room.setTags(tags);
 //
 //                                    // Begin, copy and commit
 ////                                    realm.beginTransaction();

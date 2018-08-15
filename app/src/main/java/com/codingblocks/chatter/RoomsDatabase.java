@@ -9,7 +9,7 @@ import android.content.Context;
 import com.codingblocks.chatter.db.RoomsTable;
 import com.codingblocks.chatter.models.RoomsDao;
 
-@Database(entities = {RoomsTable.class}, version = 2,exportSchema = false)
+@Database(entities = {RoomsTable.class}, version = 4,exportSchema = false)
 public abstract class RoomsDatabase extends RoomDatabase {
     private static RoomsDatabase INSTANCE;
 

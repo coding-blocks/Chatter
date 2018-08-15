@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -41,11 +42,13 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
+public class BottomSheetGroupFragment extends BottomSheetDialogFragment implements View.OnClickListener {
     @BindView(R.id.group_image)
     ImageView mGroupImage;
     @BindView(R.id.group_displayname)
@@ -60,6 +63,8 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
     Button deleteRoom;
     @BindView(R.id.removeUserBtn)
     Button removeUser;
+    @BindView(R.id.updateRoomBtn)
+    Button updateRoom;
     private OkHttpClient client = new OkHttpClient();
     private String room_id;
     //Database
@@ -135,6 +140,9 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                 .addHeader("Authorization", "Bearer " + accessToken)
                 .build();
         fetchRoomUsers(request);
+        deleteRoom.setOnClickListener(this);
+        removeUser.setOnClickListener(this);
+        updateRoom.setOnClickListener(this);
         return root;
     }
 
@@ -169,24 +177,9 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                                     @Override
                                     public void run() {
                                         deleteRoom.setVisibility(View.VISIBLE);
-                                        deleteRoom.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                deleteRoom();
-                                            }
-                                        });
                                         removeUser.setVisibility(View.VISIBLE);
-                                        removeUser.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                Bundle bundle = new Bundle();
-                                                bundle.putString("roomId", room_id);
-                                                bundle.putBoolean("removeUser", true);
-                                                Intent roomIntent = new Intent(getActivity(), RoomUsersActivity.class);
-                                                roomIntent.putExtras(bundle);
-                                                startActivity(roomIntent);
-                                            }
-                                        });
+                                        updateRoom.setVisibility(View.VISIBLE);
+
                                     }
                                 });
 
@@ -214,6 +207,67 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                 }
             }
         });
+    }
+
+    private void updateRoom() {
+        LayoutInflater factory = LayoutInflater.from(getContext());
+        final android.app.AlertDialog infodialog = new android.app.AlertDialog.Builder(getContext()).create();
+
+        final View dialog = factory.inflate(R.layout.update_info_dialog, null);
+        TextView roomname;
+        EditText tags, topic;
+        Button updateRoom;
+        tags = dialog.findViewById(R.id.tagsedt);
+        topic = dialog.findViewById(R.id.topicedt);
+        roomname = dialog.findViewById(R.id.room_name);
+        updateRoom = dialog.findViewById(R.id.confirmUpdate);
+        tags.setText(roomsTable.getTags());
+        topic.setText(roomsTable.getTopic());
+        roomname.setText(roomsTable.getRoomName());
+        infodialog.setView(dialog);
+        infodialog.show();
+        final String accessToken = getContext()
+                .getSharedPreferences("UserPreferences", 0)
+                .getString("accessToken", "");
+        final OkHttpClient client = new OkHttpClient();
+
+        final RequestBody requestBody = new FormBody.Builder()
+                .add("tags", tags.getText().toString())
+                .build();
+        final Request request = new Request.Builder()
+                .url("https://api.gitter.im/v1/rooms/" + room_id)
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .put(requestBody)
+                .build();
+        updateRoom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (response.isSuccessful()) {
+                            infodialog.dismiss();
+                        } else {
+                            try {
+                                JSONObject jsonObject = new JSONObject(response.body().string());
+                                Log.i("TAG", "onResponse: " + jsonObject);
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+
     }
 
     private void deleteRoom() {
@@ -268,5 +322,26 @@ public class BottomSheetGroupFragment extends BottomSheetDialogFragment {
                     }
                 })
                 .show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        switch (id) {
+            case R.id.deleteRoomBtn:
+                deleteRoom();
+                break;
+            case R.id.removeUserBtn:
+                Bundle bundle = new Bundle();
+                bundle.putString("roomId", room_id);
+                bundle.putBoolean("removeUser", true);
+                Intent roomIntent = new Intent(getActivity(), RoomUsersActivity.class);
+                roomIntent.putExtras(bundle);
+                startActivity(roomIntent);
+                break;
+            case R.id.updateRoomBtn:
+                updateRoom();
+                break;
+        }
     }
 }
