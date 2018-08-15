@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="350dp"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:textAlignment="center">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="40dp"
+        android:text="Notification settings"
+        android:textColor="#0f0520"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/radioNotification"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:layout_marginLeft="15dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="10dp">
+
+        <RadioButton
+            android:id="@+id/radioAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:padding="10dp"
+            android:text="All : Notify me for all messages"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioAnnouncements"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="Announcements : Notify me for mentions and announcements"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioMute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="Mute : Notify me only when I'm directlu mentioned"
+            android:textSize="18sp" />
+
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/notificationInfoTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/radioNotification"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:text="Your Settings :"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/notificationInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/notificationInfoTitle"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/notificationcancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/notificationInfo"
+        android:layout_toLeftOf="@id/notificationsave"
+        android:background="#00000000"
+        android:text="cancel"
+        android:textColor="@color/colorPrimary" />
+
+    <Button
+        android:id="@+id/notificationsave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/notificationInfo"
+        android:background="#00000000"
+        android:text="save"
+        android:textColor="@color/colorPrimary" />
+
+
+</RelativeLayout>
