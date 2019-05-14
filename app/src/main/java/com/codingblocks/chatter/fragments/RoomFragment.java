@@ -332,7 +332,7 @@ public class RoomFragment extends Fragment {
                             if (getActivity() != null)
                                 Toast.makeText(
                                         getActivity(),
-                                        "There seems to be no rooms, please try again later",
+                                        "There seem to be no more messages",
                                         Toast.LENGTH_SHORT
                                 ).show();
                             Looper.loop();
