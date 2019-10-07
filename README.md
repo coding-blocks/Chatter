@@ -19,20 +19,23 @@ Screenshots :
 
 <img src="https://user-images.githubusercontent.com/29139786/44072581-4f6862cc-9fad-11e8-84d3-69d5f028afed.jpg" width=300><img src="https://user-images.githubusercontent.com/29139786/44072582-501f610c-9fad-11e8-9ab5-2e534b863b51.jpg" width=300>
 
- ### Automating Publishing to the Play Store
+### Automating Publishing to the Play Store
  
-    -The first APK or App Bundle needs to be uploaded via the Google Play Console because registering the app with the Play Store cannot be done using the Play Developer API.
-    -To use this plugin, you must create a service account with access to the Play Developer API. Once that's done, you'll need to grant the following permissions to your service account for this plugin to work (go to Settings -> Developer account -> API access -> Service Accounts).
-    -Once done download your PKCS12 key or json key somewhere and the location of key in the build.gradle file in the play block
-    -Then run one of the following commands:
-    | Command | Description |
+   - The first APK or App Bundle needs to be uploaded via the Google Play Console because registering the app with the Play Store cannot be done using the Play Developer API.
+   - To use this plugin, you must create a service account with access to the Play Developer API. Once that's done, you'll need to grant the following permissions to your service account for this plugin to work (go to Settings -> Developer account -> API access -> Service Accounts).
+   - Once done download your PKCS12 key or json key somewhere and the location of key in the build.gradle file in the play block
+   - Then run one of the following commands :
+
+
+
+   | Command       |   Description |
    | ------------- | ------------- |
-   | 'publishApkRelease'| Uploads the APK and the summary of recent changes. |
-   | 'publishListingRelease'| Uploads the descriptions and images for the Play Store listing.|
-   | 'publishRelease'| Uploads everything.|
-   | 'bootstrapReleasePlayResources'| Fetch data from the Play Store & bootstrap the required files/folders.|
+   | 'publishApkRelease' | Uploads the APK and the summary of recent changes. |
+   | 'publishListingRelease' | Uploads the descriptions and images for the Play Store listing.|
+   | 'publishRelease' | Uploads everything.|
+   | 'bootstrapReleasePlayResources' | Fetch data from the Play Store & bootstrap the required files/folders.|
                                  
-You can now type the following gradle commands such as the following:
- bash
-./gradlew publishApkRelease
+You can now type the following gradle commands such as the following: 
+ 
+bash `./gradlew publishApkRelease`
 
