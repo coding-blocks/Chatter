@@ -61,6 +61,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     private TextView txtName, txtDisplayName;
     String username, accessToken, idOfUser, displayName, userUrl, avatarUrl;
     NavigationView navigationView;
+    private DrawerLayout drawer;
     Menu navMenu;
     List<RoomsTable> suggested = new ArrayList<>();
     List<RoomsTable> favourite = new ArrayList<>();
@@ -73,7 +74,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         ButterKnife.bind(this);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.app_name, R.string.app_name);
         drawer.addDrawerListener(toggle);
@@ -365,7 +366,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                     favourite.get(id - 6).getFavourite(),
                     true);
         }
-
+        drawer.closeDrawer(GravityCompat.START,true);
         return false;
     }
 
