@@ -1,5 +1,6 @@
 # Chatter
 Chat app for gitter
+This app provide chatting purpose for users.
 
 <a href="https://play.google.com/store/apps/details?id=com.codingblocks.chatter">
   <img alt="Android app on Google Play"
